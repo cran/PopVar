@@ -44,7 +44,7 @@ tails <- function(GEBVs, tail.p){ #Calculates means of tails; set tail.p to the 
   return(rbind(u.top, u.bot))
 }
 
-maf.filt <- function(G){
+maf.filt <- function(G){ ## Once it is clarified that '1' denotes the minor allele this filter can be reduced in complexity
   G_noNA <- G[!is.na(G)]
   len_G <- length(G_noNA)
   

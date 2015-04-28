@@ -14,19 +14,20 @@
 #' @param min.maf Optional \code{numeric} indicating a minimum minor allele frequency (MAF) when filtering \code{G.in}. Markers with an MAF < \code{min.maf} will be removed. Default is \code{0.01} to remove monomorphic markers. Set to \code{0} for no filtering.
 #' @param mkr.cutoff Optional \code{numeric} indicating the maximum missing data per marker when filtering \code{G.in}. Markers missing > \code{mkr.cutoff} data will be removed. Default is \code{0.50}. Set to \code{1} for no filtering.
 #' @param entry.cutoff Optional \code{numeric} indicating the maximum missing genotypic data per entry alloed when filtering \code{G.in}. Entries missing > \code{entry.cutoff} marker data will be removed. Default is \code{0.50}. Set to \code{1} for no filtering.
-#' @param remove.dups Optional \code{logical}. If \code{TRUE} then duplicate entries in the genotype matrix, if present, will be removed. This step may be necessary for missing marker imputation via the EM algorithm by \code{\link[rrBLUP]{A.mat}} in \code{\link{rrBLUP}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). Default is \code{TRUE}.
+#' @param remove.dups Optional \code{logical}. If \code{TRUE} duplicate entries in the genotype matrix, if present, will be removed. This step may be necessary for missing marker imputation (see \code{impute.EM} below). Default is \code{TRUE}.
+#' @param impute.EM Optional \code{logical}. If \code{TRUE} missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{FALSE} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP}}. Default is \code{TRUE}.
 #' @param nSim Optional \code{integer} indicating the number of iterations a population should be simulated for each pairwise cross. Returned values are reported as means of parameters estimated in each of \code{nSim} simulations. Default is \code{25}.
 #' @param frac.train Optional \code{numeric} indicating the fraction of the TP that is used to estimate marker effects (i.e. the prediction set) under cross-validation (CV) method 1 (see \code{Details} in \code{\link{x.val}}). The remaining \eqn{(1-frac.trait)} of the TP will then comprise the prediction set.
 #' @param nCV.iter Optional \code{integer} indicating the number of times to iterate \emph{CV method 1} (see \code{Details} in \code{\link{x.val}}). Default is \code{100}.
 #' @param nFold Optional \code{integer}. If a number is provided, denoting the number of "folds", then CV will be conducted using \emph{CV method 2} (see \code{Details} in \code{\link{x.val}}). Default is \code{NULL}, resulting in the default use of the \emph{CV method 1}.
 #' @param nFold.reps Optional \code{integer} indicating the number of times \emph{CV method 2} is repeated. The CV accuracy returned is the average \emph{r} of each rep. Default is \code{1}.
 #' @param nIter,burnIn Optional \code{integer} arguments used by \code{\link[BGLR]{BGLR}} (\cite{de los Compos and Rodriguez, 2014}) when fitting Bayesian models to estimate marker effects. The defaults are \code{12000} and \code{3000}, respectively. These values when conducting CV are fixed \code{1500} and \code{500}, respectively, for computational effeciency.
-#' @param models Optional \code{Character vector} of the regression models to be used in CV and to estimate marker effects. Options include \code{rrBLUP, BayesA, BayesB, BayesC, BL, BRR}, one or more may be included at a time. By default all models are tested.
+#' @param models Optional \code{Character vector} of the regression models to be used in CV and to estimate marker effects. Options include \code{rrBLUP, BayesA, BayesB, BayesC, BL, BRR}, one or more may be included at a time. CV will be conducted regardless of how many models are included. By default all models are tested.
 #' @param return.raw Optional \code{logical}. If \code{TRUE} then \code{pop.predict} will return the results of each simulation in addition to the summarized dataframe. Default is \code{FALSE}.
-#' @details \code{pop.predict} can be used to predict the mean (\eqn{\mu}), genetic variance (\emph{V_G}), superior progeny values (\eqn{\mu}\eqn{_sp}), and predicted correlated response and correlations between all pairwise traits. The methodology and procedure to do so has been described in \cite{Bernardo (2014)} and \cite{Mohammadi, Tiede, and K.P. Smith (2015)}. Users familiar with genome-wide prediction, association mapping, and/or linkage mapping will be familiar with the
+#' @details \code{pop.predict} can be used to predict the mean (\eqn{\mu}), genetic variance (\emph{V_G}), superior progeny values (\eqn{\mu}\eqn{_sp}), as well as the predicted correlated response and correlations between all pairwise traits. The methodology and procedure to do so has been described in \cite{Bernardo (2014)} and \cite{Mohammadi, Tiede, and K.P. Smith (2015)}. Users familiar with genome-wide prediction, association mapping, and/or linkage mapping will be familiar with the
 #'          required inputs of \code{pop.predict}. \code{G.in} includes all of the entries (taxa) in the TP as well as additional entries to be considered as parent candidates. Entries included in \code{G.in} that do have a phenotype for any or all traits in \code{y.in} are considered TP entries for those respective traits. \code{G.in} is filtered according to \code{min.maf}, \code{mkr.cutoff}, \code{entry.cutoff}, and \code{remove.dups};
 #'          remaining missing marker data is imputed using the EM algorith (\cite{Poland et al., 2012}) when possible, and the marker mean otherwise, both implemented in \code{\link{rrBLUP}}. For each trait, the TP (i.e. entries with phenotype) is used to: \enumerate{
-#'          \item Perform CV (see \code{frac.train} and \code{nCV.iter} for details about the CV method) to select a regression model
+#'          \item Perform CV to select a regression model. NOTE - Using the model with the highest CV accuracy is expected to result in the most accurate marker effect estimates (\cite{Bernardo, 2014}). This expectation, however, is yet to be empirically validated and the user is encouraged to investigate the various models in order to make an educated decision about which one to ultimately use.
 #'          \item Estimate marker effects using the model resulting in the highest CV accuracy
 #'          }
 #'          Models include ridge regression BLUP implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}) and BayesA, BayesB, BayesC\eqn{\pi}, Bayesian lasso (BL), and Bayesian ridge regression (BRR) implemented in \code{\link{BGLR}} (\cite{de los Compos and Rodriguez, 2014}).
@@ -36,7 +37,7 @@
 #'          
 #'          A dataset \code{\link{think_barley.rda}} is provided as an example of the proper formatting of input files and also for users to become familiar with \code{pop.predict}.
 #' @return A \code{list} containing: \itemize{ 
-#'            \item \code{predictions} A \code{list} of dataframes containing predictions of (\eqn{\mu}), (\emph{V_G}), and (\eqn{\mu}\emph{_sp}). When multiple traits are provided the correlated responses and correlation between all pairwise traits is also included.
+#'            \item \code{predictions} A \code{list} of dataframes containing predictions of (\eqn{\mu}), (\emph{V_G}), and (\eqn{\mu}\emph{_sp}). When multiple traits are provided the correlated responses and correlation between all pairwise traits is also included. More specifically, for a given trait pair the correlated response of the secondary trait with both the high and low superior progeny of the primary trait is returned since the favorable values cannot be known by \code{PopVar}.
 #'            \item \code{preds.per.sim} If return.raw is \code{TRUE} then a \code{dataframe} containing the results of each simulation is returned. This is usful for calculating dispersion statistics for traits not provided in the standard \code{predictions} dataframe.
 #'            \item \code{CVs} A \code{dataframe} of CV results for each trait/model combination specified.
 #'            \item \code{models.chosen} A \code{matrix} listing the statistical model chosen for each trait.
@@ -96,7 +97,8 @@
 #' }
 #' @export
 
-pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, parents=NULL, tail.p=0.10, nInd=200, map.plot=F, min.maf=0.01, mkr.cutoff=0.50, entry.cutoff=0.50, remove.dups=T, nSim=25, frac.train=0.60, nCV.iter=100, nFold=NULL, nFold.reps=1, nIter=12000, burnIn=3000, models=c("rrBLUP", "BayesA", "BayesB","BayesC", "BL", "BRR"), return.raw=F){
+
+pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, parents=NULL, tail.p=0.10, nInd=200, map.plot=F, min.maf=0.01, mkr.cutoff=0.50, entry.cutoff=0.50, remove.dups=T, impute.EM=T, nSim=25, frac.train=0.60, nCV.iter=100, nFold=NULL, nFold.reps=1, nIter=12000, burnIn=3000, models=c("rrBLUP", "BayesA", "BayesB","BayesC", "BL", "BRR"), return.raw=F){
    
   ## QC steps
   if(is.null(G.in)) stop("Must provide a genotype (G.in) file.")
@@ -148,7 +150,7 @@ pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, 
     if(!is.null(parents)){parents <- parents[!parents %in% entries.removed]} ## Removes entries that are included in entries.removed from parent list 
   }
   
-  y <- y.in[match(G.entries, as.character(y.in[,1])),]
+  y <- as.matrix(y.in[match(G.entries, as.character(y.in[,1])),])
   y.entries <- as.character(y[,1])
   traits <- as.character(colnames(y))[-1]; nTraits <- length(traits)
   
@@ -172,23 +174,29 @@ pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, 
   
   ## Imput missing markers with EM... will switch to imputing with the mean if nEntries > nMarkers
   ## Will need to use our own MAF filter so that we can keep track of which markers are removed due to MAF and missing data
-  G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "EM", return.imputed = T)$imputed
+  if(impute.EM) G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "EM", return.imputed = T)$imputed
+  if(!impute.EM) G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "mean", return.imputed = T)$imputed
   
-
   ### Start simulation
   for(t in 1:nTraits){
     
     trait <- traits[t]
-      
+    
     ### the y.noNA and G.noNA define the TP and are used for CV and marker effect estimation
     y_notNAs <- !is.na(y[,trait])
     y_TP <- as.numeric(y[y_notNAs, trait])
     TP.entries <- y.entries[y_notNAs]
     G_TP <- G.imp[y_notNAs, ] 
     
+    if(t==1){
+      cat("\n")
+      cat("Warnings about 'closing unused connections' AND 'Error in rinvGauss' can be safely disregarded... They are dealt with internally")
+      cat("\n")
+    }
+    
     cat("\n")
-    cat(paste("\nSelecting best model via cross validation for ", trait, " and estimating marker effects", sep=""))
-    cat("\nWarnings about 'closing unused connections' AND 'Error in rinvGauss' can be safely disregarded.\nThey are dealt with internally.")
+    cat(paste("Selecting best model via cross validation for ", trait, " and estimating marker effects", sep=""))
+    cat("\n")    
     
     if(is.null(nFold)) junk <- capture.output(xval.out <- XValidate.nonInd(y.CV = y_TP, G.CV = G_TP, models.CV = models, frac.train.CV=frac.train, nCV.iter.CV=nCV.iter, burnIn.CV = 750, nIter.CV = 1500)$CV.summary)
     if(!is.null(nFold)) junk <- capture.output(xval.out <- XValidate.Ind(y.CV = y_TP, G.CV = G_TP, models.CV = models, nFold.CV = nFold, nFold.CV.reps = nFold.reps, burnIn.CV = 750, nIter.CV = 1500)$CV.summary)
@@ -202,6 +210,7 @@ pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, 
     }
     
     CV.results[[t]] <- xval.out
+    names(CV.results)[[t]] <- trait
     
     best.model <- as.character(xval.out$Model[which(xval.out$r_avg == max(xval.out$r_avg))])
     best.models[t] <- best.model; names(best.models)[t] <- trait
@@ -221,6 +230,8 @@ pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, 
         
   }
   
+  cat("\n")
+  cat("Cross validation is complete!")
   
   ## Set up which crosses to predict
   if(!is.null(crossing.table)){ ## Used when the user provides a list of specific crosses, parents come from G.in.entries (i.e. not necessarily in TP)
@@ -256,8 +267,10 @@ pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, 
     
   
   ## Generates results dataframe for all traits
-  df.tmp <- data.frame(cbind(crosses.possible, matrix(list(rep(NA, times=nSim)), nrow = nrow(crosses.possible), ncol = (8+3*(nTraits-1)))))
-  names(df.tmp)[1:10] <- c("Par1", "Par1", "midPar.Pheno", "midPar.GEBV", "pred.mu", "pred.mu_sd", "pred.varG", "pred.varG_sd", "mu.sp_low", "mu.sp_high")
+  #df.ncol <- (8 + 3*(nTraits-1))
+  #if(nTraits == 1) df.ncol <- 11
+  df.tmp <- data.frame(cbind(crosses.possible[,1], crosses.possible[,2], matrix(list(rep(NA, times=nSim)), nrow = nrow(crosses.possible), ncol = (8 + 3*(nTraits-1)))))
+  names(df.tmp)[1:10] <- c("Par1", "Par2", "midPar.Pheno", "midPar.GEBV", "pred.mu", "pred.mu_sd", "pred.varG", "pred.varG_sd", "mu.sp_low", "mu.sp_high")
   for(n in 1:nTraits){
     if(n == 1) param.dfs <- list()
     param.dfs[[n]] <- as.matrix(df.tmp)
@@ -266,7 +279,7 @@ pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, 
   
   ## Start simulation and var.prd process
   cat("\n")
-  cat(paste("\nBrewing", nSim, "populations... Please be patient.", sep=" "))
+  cat(paste("\nBrewing", nSim, "populations of", nInd, "individuals for each cross... Please be patient", sep=" "))
   cat("\n")
   prog.bar <- txtProgressBar(min=1,  max=(nrow(crossing.mat)*nSim), style=3); p=1
   M <- nInd
@@ -288,7 +301,6 @@ pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, 
       for(r in 1:M){
         pop.mat2[r,which(pop.mat[r,]=="A")] <- par1[which(pop.mat[r,]=="A")]
         pop.mat2[r,which(pop.mat[r,]=="B")] <- par2[which(pop.mat[r,]=="B")]
-        #if(cross.type=="f2") pop.mat2[r,which(pop.mat[r,]=="H")] <- 0
       }
       
       mkr.has.0 <- apply(pop.mat2, 2, function(X){return(length(which(X == 0)))})
@@ -308,9 +320,9 @@ pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, 
       
       for(n in 1:nTraits){
         if(s == 1){
-          colnames(param.dfs[[n]])[11:(10+3*(nTraits-1))]<- c(paste("low.resp_", traits[-n], sep=""), paste("high.resp_", traits[-n], sep=""), paste("cor_w/_", traits[-n], sep=""))
-          param.dfs[[n]][[z, "midPar.Pheno"]][s] <- 0.5*(y[,n+1][crossing.mat[z,1]] + y[,n+1][crossing.mat[z,2]])
-          param.dfs[[n]][[z, "midPar.GEBV"]][s] <- 0.5*(par.BVs[,n][crossing.mat[z,1]] + par.BVs[,n][crossing.mat[z,2]])
+          if(nTraits > 1) colnames(param.dfs[[n]])[11:(10+3*(nTraits-1))]<- c(paste("low.resp_", traits[-n], sep=""), paste("high.resp_", traits[-n], sep=""), paste("cor_w/_", traits[-n], sep=""))
+          param.dfs[[n]][[z, "midPar.Pheno"]][s] <- 0.5*(as.numeric(y[crossing.mat[z,1], n+1]) + as.numeric(y[crossing.mat[z,2], n+1]))
+          param.dfs[[n]][[z, "midPar.GEBV"]][s] <- 0.5*(as.numeric(par.BVs[crossing.mat[z,1], n]) + as.numeric(par.BVs[crossing.mat[z,2], n]))
         }
         param.dfs[[n]][[z, "pred.mu"]][s] <- mean(prog_pred.mat[, n])
         param.dfs[[n]][[z, "pred.mu_sd"]][s] <- mean(prog_pred.mat[, n])
@@ -319,17 +331,18 @@ pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, 
         param.dfs[[n]][[z, "mu.sp_low"]][s] <- tails(prog_pred.mat[, n], tail.p = tail.p)[2]
         param.dfs[[n]][[z, "mu.sp_high"]][s] <- tails(prog_pred.mat[, n], tail.p = tail.p)[1]
         ## Calculate correlations between traits and correlated response and 
-        index <- 1; for(n2 in (1:nTraits)[-n]){
-          param.dfs[[n]][[z, 10+index]][s] <- mean(prog_pred.mat[,n2][which(prog_pred.mat[,n] <= quantile(prog_pred.mat[,n], probs = tail.p))], na.rm = T)
-          param.dfs[[n]][[z, 10+(nTraits-1)+index]][s] <- mean(prog_pred.mat[,n2][which(prog_pred.mat[,n] >= quantile(prog_pred.mat[,n], probs = 1-tail.p))], na.rm = T)
-          param.dfs[[n]][[z, 10+2*(nTraits-1)+index]][s] <- cor(prog_pred.mat[,n], prog_pred.mat[,n2], use = "complete.obs")
-          index <- index+1
+        if(nTraits > 1){
+          index <- 1; for(n2 in (1:nTraits)[-n]){
+            param.dfs[[n]][[z, 10+index]][s] <- mean(prog_pred.mat[,n2][which(prog_pred.mat[,n] <= quantile(prog_pred.mat[,n], probs = tail.p))], na.rm = T)
+            param.dfs[[n]][[z, 10+(nTraits-1)+index]][s] <- mean(prog_pred.mat[,n2][which(prog_pred.mat[,n] >= quantile(prog_pred.mat[,n], probs = 1-tail.p))], na.rm = T)
+            param.dfs[[n]][[z, 10+2*(nTraits-1)+index]][s] <- cor(prog_pred.mat[,n], prog_pred.mat[,n2], use = "complete.obs")
+            index <- index+1
+          }
         }
       }
     
       p <- p+1 # This is the counter for the progress bar
     } ## End of z loop for each cross
-    
   }## End of nSim (s) loop
   
   preds.per.sim <- param.dfs
@@ -343,11 +356,9 @@ pop.predict <- function(G.in=NULL, y.in=NULL, map.in=NULL, crossing.table=NULL, 
     }
   }
   
-  if(return.raw) return(list(predictions=param.dfs, preds.per.sim=param.dfs, CVs=CV.results, models.chosen=best.models, markers.removed=mkrs.removed, entries.removed=entries.removed))
+  if(nTraits == 1) param.dfs <- as.data.frame(param.dfs[[1]])
+  
+  if(return.raw) return(list(predictions=param.dfs, preds.per.sim=preds.per.sim, CVs=CV.results, models.chosen=best.models, markers.removed=mkrs.removed, entries.removed=entries.removed))
   if(!return.raw) return(list(predictions=param.dfs, CVs=CV.results, models.chosen=best.models, markers.removed=mkrs.removed, entries.removed=entries.removed))
   
 } # End of pop.predict
-
-
-#pop.predict(G.in_ex, y.in_ex, map.in_ex, cross.tab_ex)
-

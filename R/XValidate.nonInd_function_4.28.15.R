@@ -4,7 +4,7 @@
 XValidate.nonInd <- function(y.CV=NULL, G.CV=NULL, models.CV=NULL, frac.train.CV=NULL, nCV.iter.CV=NULL, burnIn.CV=NULL, nIter.CV=NULL){
   
   gc(verbose = F) ## Close unused connections
-  con.path <- getwd() ## BGLR will write temp files to the wd
+  #con.path <- getwd() ## BGLR will write temp files to the wd
   
   non.BGLR <- models.CV[models.CV %in% c("rrBLUP")]
   BGLR <- models.CV[models.CV %in% c("BayesA", "BayesB", "BayesC", "BL", "BRR")]
@@ -136,17 +136,25 @@ XValidate.nonInd <- function(y.CV=NULL, G.CV=NULL, models.CV=NULL, frac.train.CV
     if(l > 1) cvs <- cbind(cvs, get(toget))
   }
   
-  bad.models <- apply(cvs, 2, function(X){if(length(which(is.na(X))) > 0.05*nCV.iter.CV){ ## if more than 5% of the iterations resulted in an error 
-    return(T)
+  if(length(models.CV) == 1){
+    bad.models <- F
+    if(length(which(is.na(cvs))) > 0.025*nCV.iter.CV) bad.models <- T
+  }
+  
+  if(length(models.CV) > 1){
+    bad.models <- apply(cvs, 2, function(X){if(length(which(is.na(X))) > 0.025*nCV.iter.CV){ ## if more than 2.5% of the iterations resulted in an error 
+      return(T)
     }else{return(F)}
-  })
+    })
+  }
   
   if(length(models.CV) > 1) {CV.results <- data.frame(Model=models.CV, r_avg=apply(cvs, 2, mean, na.rm=T), r_sd=apply(cvs, 2, sd, na.rm=T)) ; rownames(CV.results) <- NULL}
   if(length(models.CV) == 1) {CV.results <- data.frame(Model=models.CV, r_avg=mean(cvs), r_sd=sd(cvs)) ; rownames(CV.results) <- NULL}
   
   if(length(which(bad.models)) > 0){
+    if(length(models.CV) == 1 | (length(which(bad.models)) == length(models.CV))) stop("All model(s) tested was/were removed due to excessive negative values of nu being returned by BGLR::BGLR")
     CV.results <- CV.results[-which(bad.models), ]
-    warning(paste("Model(s)", models.CV[which(bad.models)], "was/were removed due to negative value of nu in BGLR::BGLR."))
+    warning(paste("Model(s)", models.CV[which(bad.models)], "was/were removed due to excessive negative values of nu being returned by BGLR::BGLR."))
   }
   
   #CV.lists <- as.data.frame(t(rbind(as.character(models.CV), matrix(c(rrBLUP.cv, BayesA.cv, BayesB.cv, BayesC.cv, BL.cv, BRR.cv), ncol=length(models.CV)))))

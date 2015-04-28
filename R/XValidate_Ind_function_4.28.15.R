@@ -4,7 +4,7 @@
 XValidate.Ind <- function(y.CV=NULL, G.CV=NULL, models.CV=NULL, nFold.CV=NULL, nFold.CV.reps=NULL, burnIn.CV=NULL, nIter.CV=NULL){
   
   gc(verbose = F) ## Close unused connections
-  con.path <- getwd() ## BGLR will write temp files to the wd
+  #con.path <- getwd() ## BGLR will write temp files to the wd
   
   non.BGLR <- models.CV[models.CV %in% c("rrBLUP")]
   BGLR <- models.CV[models.CV %in% c("BayesA", "BayesB", "BayesC", "BL", "BRR")]
@@ -42,7 +42,7 @@ XValidate.Ind <- function(y.CV=NULL, G.CV=NULL, models.CV=NULL, nFold.CV=NULL, n
       ## Bayesian A
       if("BayesA" %in% BGLR){
         tryCatch({
-          BayesA.fit <- BGLR::BGLR(y=TP.y, ETA=list(list(X=TP.G, model="BayesA")), verbose=F, nIter=1500, burnIn=1000, saveAt = con.path)
+          BayesA.fit <- BGLR::BGLR(y=TP.y, ETA=list(list(X=TP.G, model="BayesA")), verbose=F, nIter=1500, burnIn=1000)
         }, error=function(e){
           gc(verbose=F)
           BayesA.fit <- NULL
@@ -60,7 +60,7 @@ XValidate.Ind <- function(y.CV=NULL, G.CV=NULL, models.CV=NULL, nFold.CV=NULL, n
       ## Bayesian B 
       if("BayesB" %in% BGLR){
         tryCatch({
-          BayesB.fit <- BGLR::BGLR(y=TP.y, ETA=list(list(X=TP.G, model="BayesB")), verbose=F, nIter=1500, burnIn=1000, saveAt = con.path)
+          BayesB.fit <- BGLR::BGLR(y=TP.y, ETA=list(list(X=TP.G, model="BayesB")), verbose=F, nIter=1500, burnIn=1000)
         }, error=function(e){
           gc(verbose=F)
           BayesB.fit <- NULL
@@ -79,7 +79,7 @@ XValidate.Ind <- function(y.CV=NULL, G.CV=NULL, models.CV=NULL, nFold.CV=NULL, n
       ## Bayesian C
       if("BayesC" %in% BGLR){
         tryCatch({
-          BayesC.fit <- BGLR::BGLR(y=TP.y, ETA=list(list(X=TP.G, model="BayesC")), verbose=F, nIter=1500, burnIn=1000, saveAt = con.path)
+          BayesC.fit <- BGLR::BGLR(y=TP.y, ETA=list(list(X=TP.G, model="BayesC")), verbose=F, nIter=1500, burnIn=1000)
         }, error=function(e){
           gc(verbose=F)
           BayesC.fit <- NULL
@@ -98,7 +98,7 @@ XValidate.Ind <- function(y.CV=NULL, G.CV=NULL, models.CV=NULL, nFold.CV=NULL, n
       ## Bayesian LASSO
       if("BL" %in% BGLR){
         tryCatch({
-          BL.fit <- BGLR::BGLR(y=TP.y, ETA=list(list(X=TP.G, model="BL")), verbose=F, nIter=1500, burnIn=1000, saveAt = con.path)
+          BL.fit <- BGLR::BGLR(y=TP.y, ETA=list(list(X=TP.G, model="BL")), verbose=F, nIter=1500, burnIn=1000)
         }, error=function(e){
           gc(verbose=F)
           BL.fit <- NULL
@@ -117,7 +117,7 @@ XValidate.Ind <- function(y.CV=NULL, G.CV=NULL, models.CV=NULL, nFold.CV=NULL, n
       ### Bayesian Ridge Reg.
       if("BRR" %in% BGLR){
         tryCatch({
-          BRR.fit <- BGLR::BGLR(y=TP.y, ETA=list(list(X=TP.G, model="BRR")), verbose=F, nIter=1500, burnIn=1000, saveAt = con.path)
+          BRR.fit <- BGLR::BGLR(y=TP.y, ETA=list(list(X=TP.G, model="BRR")), verbose=F, nIter=1500, burnIn=1000)
         }, error=function(e){
           gc(verbose=F)
           BRR.fit <- NULL
@@ -146,20 +146,28 @@ XValidate.Ind <- function(y.CV=NULL, G.CV=NULL, models.CV=NULL, nFold.CV=NULL, n
     if(j > 1) cvs.all <- rbind(cvs.all, cvs)
 
   }
-    
-  bad.models <- apply(cvs.all, 2, function(X){if(length(which(is.na(X))) > 0.025*(nFold.CV*nFold.CV.reps)){ ## if more than 5% of the iterations resulted in an error 
-    return(T)
-  }else{return(F)}
-  })
+  
+  if(length(models.CV) == 1){
+    bad.models <- F
+    if(length(which(is.na(cvs.all))) > 0.025*(nFold.CV*nFold.CV.reps)) bad.models <- T
+  }
+  
+  if(length(models.CV) > 1){
+    bad.models <- apply(cvs.all, 2, function(X){if(length(which(is.na(X))) > 0.025*(nFold.CV*nFold.CV.reps)){ ## if more than 2.5% of the iterations resulted in an error 
+      return(T)
+    }else{return(F)}
+    })
+  }
   
   if(length(models.CV) > 1) {CV.results <- data.frame(Model=models.CV, r_avg=apply(cvs.all, 2, mean, na.rm=T), r_sd=apply(cvs.all, 2, sd, na.rm=T)) ; rownames(CV.results) <- NULL}
   if(length(models.CV) == 1) {CV.results <- data.frame(Model=models.CV, r_avg=mean(cvs.all), r_sd=sd(cvs.all)) ; rownames(CV.results) <- NULL}
     
   if(length(which(bad.models)) > 0){
+    if(length(models.CV) == 1 | (length(which(bad.models)) == length(models.CV))) stop("All model(s) tested was/were removed due to excessive negative values of nu being returned by BGLR::BGLR")
     CV.results <- CV.results[-which(bad.models), ]
-    warning(paste("Model(s)", models.CV[which(bad.models)], "was/were removed due to negative value of nu in BGLR::BGLR."))
+    warning(paste("Model(s)", models.CV[which(bad.models)], "was/were removed due to excessive negative values of nu being returned by BGLR::BGLR."))
   }
-    
+  
   #CV.lists <- as.data.frame(t(rbind(as.character(models.CV), matrix(c(rrBLUP.cv, BayesA.cv, BayesB.cv, BayesC.cv, BL.cv, BRR.cv), ncol=length(models.CV)))))
   return(list(CV.summary = CV.results))#, iter.CV = CV.lists))
   
