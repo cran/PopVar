@@ -11,7 +11,14 @@ x.val(G.in = NULL, y.in = NULL, min.maf = 0.01, mkr.cutoff = 0.5,
   "BayesB", "BayesC", "BL", "BRR"))
 }
 \arguments{
-\item{G.in}{\code{Matrix} of genotypic data. First row contains marker names and the first column contains entry (taxa) names. Genotypes should be coded using the (1, 0, -1, NA) format familiar to users of \code{\link{rrBLUP}} (\cite{Endelman, 2011}). TIP - Set header=\code{FALSE} within \code{read.table} or \code{read.csv} when importing a tab-delimited file containing data for \code{G.in}.}
+\item{G.in}{\code{Matrix} of genotypic data. First row contains marker names and the first column contains entry (taxa) names. Genotypes should be coded as follows: \itemize{
+\item \code{1}: homozygous for minor allele
+\item \code{0}: heterozygous
+\item \code{-1}: homozygous for major allele
+\item \code{NA}: missing data
+\item Imputed genotypes can be passed, see \code{impute.EM} below for details
+}
+TIP - Set header=\code{FALSE} within \code{\link{read.table}} or \code{\link{read.csv}} when importing a tab-delimited file containing data for \code{G.in}.}
 
 \item{y.in}{\code{Matrix} of phenotypic data. First column contains entry (taxa) names found in \code{G.in}, regardless of whether the entry has a phenotype for any or all traits. Additional columns contain phenotypic data; column names should reflect the trait name(s). TIP - Set header=\code{TRUE} within \code{read.table} or \code{read.csv} when importing a tab-delimited file contianing dat}
 
@@ -23,7 +30,7 @@ x.val(G.in = NULL, y.in = NULL, min.maf = 0.01, mkr.cutoff = 0.5,
 
 \item{remove.dups}{Optional \code{logical}. If \code{TRUE} duplicate entries in the genotype matrix, if present, will be removed. This step may be necessary for missing marker imputation (see \code{impute.EM} below). Default is \code{TRUE}.}
 
-\item{impute.EM}{Optional \code{logical}. If \code{TRUE} missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{FALSE} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP}}. Default is \code{TRUE}.}
+\item{impute.EM}{Optional \code{character} \emph{or} \code{logical}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}. Otherwise, filtering will proceed as defineded by \code{min.maf, mkr.cutoff, entry.cutoff}; if \code{TRUE} missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}), and if \code{FALSE} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP}}. Default is \code{TRUE}.}
 
 \item{frac.train}{Optional \code{numeric} indicating the fraction of the TP that is used to estimate marker effects (i.e. the prediction set) under cross-validation (CV) method 1 (see \code{Details}). The remaining \eqn{(1-frac.trait)} of the TP will then comprise the prediction set.}
 
