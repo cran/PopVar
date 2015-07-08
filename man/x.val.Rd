@@ -5,7 +5,7 @@
 \title{Estimate genome-wide prediction accuacy using cross-validation}
 \usage{
 x.val(G.in = NULL, y.in = NULL, min.maf = 0.01, mkr.cutoff = 0.5,
-  entry.cutoff = 0.5, remove.dups = T, impute.EM = T, frac.train = 0.6,
+  entry.cutoff = 0.5, remove.dups = T, impute = "EM", frac.train = 0.6,
   nCV.iter = 100, nFold = NULL, nFold.reps = 1, return.estimates = F,
   CV.burnIn = 750, CV.nIter = 1500, models = c("rrBLUP", "BayesA",
   "BayesB", "BayesC", "BL", "BRR"))
@@ -16,7 +16,7 @@ x.val(G.in = NULL, y.in = NULL, min.maf = 0.01, mkr.cutoff = 0.5,
 \item \code{0}: heterozygous
 \item \code{-1}: homozygous for major allele
 \item \code{NA}: missing data
-\item Imputed genotypes can be passed, see \code{impute.EM} below for details
+\item Imputed genotypes can be passed, see \code{impute} below for details
 }
 TIP - Set header=\code{FALSE} within \code{\link{read.table}} or \code{\link{read.csv}} when importing a tab-delimited file containing data for \code{G.in}.}
 
@@ -28,9 +28,9 @@ TIP - Set header=\code{FALSE} within \code{\link{read.table}} or \code{\link{rea
 
 \item{entry.cutoff}{Optional \code{numeric} indicating the maximum missing genotypic data per entry alloed when filtering \code{G.in}. Entries missing > \code{entry.cutoff} marker data will be removed. Default is \code{0.50}. Set to \code{1} for no filtering.}
 
-\item{remove.dups}{Optional \code{logical}. If \code{TRUE} duplicate entries in the genotype matrix, if present, will be removed. This step may be necessary for missing marker imputation (see \code{impute.EM} below). Default is \code{TRUE}.}
+\item{remove.dups}{Optional \code{logical}. If \code{TRUE} duplicate entries in the genotype matrix, if present, will be removed. This step may be necessary for missing marker imputation (see \code{impute}). Default is \code{TRUE}.}
 
-\item{impute.EM}{Optional \code{character} \emph{or} \code{logical}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}. Otherwise, filtering will proceed as defineded by \code{min.maf, mkr.cutoff, entry.cutoff}; if \code{TRUE} missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}), and if \code{FALSE} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP}}. Default is \code{TRUE}.}
+\item{impute}{Options include \code{c("EM", "mean", "pass")}. By default (i.e. \code{"EM"}), after filtering missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{"mean"} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP}}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}.}
 
 \item{frac.train}{Optional \code{numeric} indicating the fraction of the TP that is used to estimate marker effects (i.e. the prediction set) under cross-validation (CV) method 1 (see \code{Details}). The remaining \eqn{(1-frac.trait)} of the TP will then comprise the prediction set.}
 

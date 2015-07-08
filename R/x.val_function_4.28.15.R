@@ -8,15 +8,15 @@
 #'          \item \code{0}: heterozygous
 #'          \item \code{-1}: homozygous for major allele
 #'          \item \code{NA}: missing data
-#'          \item Imputed genotypes can be passed, see \code{impute.EM} below for details
+#'          \item Imputed genotypes can be passed, see \code{impute} below for details
 #'          }
 #'          TIP - Set header=\code{FALSE} within \code{\link{read.table}} or \code{\link{read.csv}} when importing a tab-delimited file containing data for \code{G.in}.
 #' @param y.in \code{Matrix} of phenotypic data. First column contains entry (taxa) names found in \code{G.in}, regardless of whether the entry has a phenotype for any or all traits. Additional columns contain phenotypic data; column names should reflect the trait name(s). TIP - Set header=\code{TRUE} within \code{read.table} or \code{read.csv} when importing a tab-delimited file contianing dat
-#' @param impute.EM Optional \code{character} \emph{or} \code{logical}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}. Otherwise, filtering will proceed as defineded by \code{min.maf, mkr.cutoff, entry.cutoff}; if \code{TRUE} missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}), and if \code{FALSE} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP}}. Default is \code{TRUE}.
+#' @param impute Options include \code{c("EM", "mean", "pass")}. By default (i.e. \code{"EM"}), after filtering missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{"mean"} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP}}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}.
 #' @param min.maf Optional \code{numeric} indicating a minimum minor allele frequency (MAF) when filtering \code{G.in}. Markers with an MAF < \code{min.maf} will be removed. Default is \code{0.01} to remove monomorphic markers. Set to \code{0} for no filtering.
 #' @param mkr.cutoff Optional \code{numeric} indicating the maximum missing data per marker when filtering \code{G.in}. Markers missing > \code{mkr.cutoff} data will be removed. Default is \code{0.50}. Set to \code{1} for no filtering.
 #' @param entry.cutoff Optional \code{numeric} indicating the maximum missing genotypic data per entry alloed when filtering \code{G.in}. Entries missing > \code{entry.cutoff} marker data will be removed. Default is \code{0.50}. Set to \code{1} for no filtering.
-#' @param remove.dups Optional \code{logical}. If \code{TRUE} duplicate entries in the genotype matrix, if present, will be removed. This step may be necessary for missing marker imputation (see \code{impute.EM} below). Default is \code{TRUE}.
+#' @param remove.dups Optional \code{logical}. If \code{TRUE} duplicate entries in the genotype matrix, if present, will be removed. This step may be necessary for missing marker imputation (see \code{impute}). Default is \code{TRUE}.
 #' @param frac.train Optional \code{numeric} indicating the fraction of the TP that is used to estimate marker effects (i.e. the prediction set) under cross-validation (CV) method 1 (see \code{Details}). The remaining \eqn{(1-frac.trait)} of the TP will then comprise the prediction set.
 #' @param nCV.iter Optional \code{integer} indicating the number of times to iterate \emph{CV method 1} described in \code{Details}. Default is \code{100}.
 #' @param nFold Optional \code{integer}. If a number is provided, denoting the number of "folds", then CV will be conducted using \emph{CV method 2} (see \code{Details}). Default is \code{NULL}, resulting in the default use of the \emph{CV method 1}.
@@ -48,7 +48,7 @@
 #' }
 #' @export
 
-x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cutoff=0.50, remove.dups=T, impute.EM=T, frac.train=0.60, nCV.iter=100, nFold=NULL, nFold.reps=1, return.estimates=F, CV.burnIn=750, CV.nIter=1500, models=c("rrBLUP", "BayesA", "BayesB","BayesC", "BL", "BRR")){
+x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cutoff=0.50, remove.dups=T, impute="EM", frac.train=0.60, nCV.iter=100, nFold=NULL, nFold.reps=1, return.estimates=F, CV.burnIn=750, CV.nIter=1500, models=c("rrBLUP", "BayesA", "BayesB","BayesC", "BL", "BRR")){
   
   ## QC steps
   if(is.null(G.in)) stop("Must provide a genotype (G.in) file.")
@@ -56,7 +56,7 @@ x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cut
   if(!is.null(min.maf) & min.maf >= 1) stop("min.maf must be within the range [0, 1)")
   if(!is.null(entry.cutoff) & entry.cutoff > 1) stop("entry.cutoff must be within the range (0, 1]")
   if(!is.null(mkr.cutoff) & mkr.cutoff > 1) stop("mkr.cutoff must be within the range (0, 1]")
-  if(impute.EM == "pass"){min.maf=0; mkr.cutoff=1; entry.cutoff=1}
+  if(impute == "pass"){min.maf=0; mkr.cutoff=1; entry.cutoff=1}
   
   ### Requird functions found in 'Internal_PopVar_functions_2.20.15.R'  
   
@@ -69,12 +69,13 @@ x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cut
   
   ## Marker, map, and geno QC
   G.mat <- as.matrix(G.in[-1, -1]); class(G.mat) <- "numeric"
-  if(impute.EM != "pass" && !all(unique(G.mat[,1]) %in% c(-1, 0, 1, NA))) stop("\nNon-imputed genotypes need to be coded as -1, 0, 1.\nIf imputed genotypes are passed set impute.EM = 'pass'.")
+  if(impute != "pass" && !all(unique(G.mat[,1]) %in% c(-1, 0, 1, NA))) stop("\nNon-imputed genotypes need to be coded as -1, 0, 1.\nIf imputed genotypes are passed set impute = 'pass'")
   
   ### ### Filter markers first for missing data and MAF
-  if(min.maf > 0) maf.list <- apply(G.mat, 2, maf.filt); mkrs.to.remove <- which(maf.list < min.maf)
+  mkrs.to.remove <- c()
+  if(min.maf > 0){maf.list <- apply(G.mat, 2, maf.filt); mkrs.to.remove <- c(mkrs.to.remove, which(maf.list < min.maf))}
   if(mkr.cutoff <1){mkrNA.list <- apply(G.mat, 2, function(M){return(length(which(is.na(M))) / length(M))})
-  mkrs.to.remove <- unique(c(mkrs.to.remove, which(mkrNA.list > mkr.cutoff)))}
+                    mkrs.to.remove <- unique(c(mkrs.to.remove, which(mkrNA.list > mkr.cutoff)))}
   
   if(length(mkrs.to.remove > 0)){
     G.mat <- G.mat[, -mkrs.to.remove]
@@ -83,7 +84,8 @@ x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cut
   }
   
   ### Filter for duplicated entries and missing data
-  if(remove.dups) entries.to.remove <- which(duplicated.array(G.mat))
+  entries.to.remove <- c()
+  if(remove.dups) entries.to.remove <- c(entries.to.remove, which(duplicated.array(G.mat)))
   if(entry.cutoff < 1){entryNA.list <- apply(G.mat, 1, function(E){return(length(which(is.na(E))) / length(E))})
   entries.to.remove <- unique(c(entries.to.remove, which(entryNA.list > entry.cutoff)))}
   
@@ -100,9 +102,9 @@ x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cut
   
   ## Imput missing markers with EM... will switch to imputing with the mean if nEntries > nMarkers
   ## Will need to use our own MAF filter so that we can keep track of which markers are removed due to MAF and missing data
-  if(impute.EM == T) G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "EM", return.imputed = T)$imputed
-  if(impute.EM == F) G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "mean", return.imputed = T)$imputed
-  if(impute.EM == "pass") G.imp <- G.mat
+  if(impute == "EM") G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "EM", return.imputed = T)$imputed
+  if(impute == "mean") G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "mean", return.imputed = T)$imputed
+  if(impute == "pass") G.imp <- G.mat
   
   ### Start simulation
   for(t in 1:nTraits){
