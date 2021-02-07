@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Using PopVar</title>
+
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Using <code>PopVar</code></h1>
+
+
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>To make progress in breeding, populations should have a favorable mean and high genetic variance (Bernardo 2010). These two parameters can be combined into a single measure called the usefulness criterion (Schnell and Utz 1975), visualized in Figure 1.</p>
+<div class="figure">
+<img src="data:image/png;base64,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" alt />
+<p class="caption">Figure 1. Visualization of the mean, genetic variance, and superior progeny mean of a single population.</p>
+</div>
+<p>Ideally, breeders would identify the set of parent combinations that, when realized in a cross, would give rise to populations meeting these requirements. <code>PopVar</code> is a package that uses phenotypic and genomewide marker data on a set of candidate parents to predict the mean, genetic variance, and superior progeny mean in bi-parental or multi-parental populations. Thre package also contains functionality for performing cross-validation to determine the suitability of different statistical models. More details are available in Mohammadi, Tiede, and Smith (2015). A dataset <code>think_barley</code> is included for reference and examples.</p>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p>You can install the released version of PopVar from <a href="https://CRAN.R-project.org">CRAN</a> with:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">install.packages</span>(<span class="st">&quot;PopVar&quot;</span>)</span></code></pre></div>
+<p>And the development version from <a href="https://github.com/">GitHub</a> with:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># install.packages(&quot;devtools&quot;)</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;UMN-BarleyOatSilphium/PopVar&quot;</span>)</span></code></pre></div>
+</div>
+<div id="functions" class="section level2">
+<h2>Functions</h2>
+<p>Below is a description of the functions provided in <code>PopVar</code>:</p>
+<table>
+<colgroup>
+<col width="35%"></col>
+<col width="64%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Function</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>pop.predict</code></td>
+<td align="left">Uses simulations to make predictions in recombinant inbred line populations; can internally perform cross-validation for model selections; can be quite slow.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>pop.predict2</code></td>
+<td align="left">Uses deterministic equations to make predictions in populations of complete or partial selfing and with or without the induction of doubled haploids; is much faster than <code>pop.predict</code>; does not perform cross-validation or model selection internally.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>pop_predict2</code></td>
+<td align="left">Has the same functionality as <code>pop.predict2</code>, but accepts genomewide marker data in a simpler matrix format.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>x.val</code></td>
+<td align="left">Performs cross-validation to estimate model performance.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>mppop.predict</code></td>
+<td align="left">Uses deterministic equations to make predictions in 2- or 4-way populations of complete or partial selfing and with or without the induction of doubled haploids; does not perform cross-validation or model selection internally.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>mpop_predict2</code></td>
+<td align="left">Has the same functionality as <code>mppop.predict</code>, but accepts genomewide marker data in a simpler matrix format.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="examples" class="section level1">
+<h1>Examples</h1>
+<p>Below are some example uses of the functions in <code>PopVar</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># Load the package</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">library</span>(PopVar)</span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="co"># Load the example data</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="kw">data</span>(<span class="st">&quot;think_barley&quot;</span>, <span class="dt">package =</span> <span class="st">&quot;PopVar&quot;</span>)</span></code></pre></div>
+<div id="predictions-using-simulated-populations" class="section level2">
+<h2>Predictions using simulated populations</h2>
+<p>The code below simulates a single population of 1000 individuals for each of 150 crosses. For the sake of speed, the marker effects are predicted using RR-BLUP and no cross-validation is performed.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>out &lt;-<span class="st"> </span><span class="kw">pop.predict</span>(<span class="dt">G.in =</span> G.in_ex, <span class="dt">y.in =</span> y.in_ex, <span class="dt">map.in =</span> map.in_ex,</span>
+<span id="cb4-2"><a href="#cb4-2"></a>                   <span class="dt">crossing.table =</span> cross.tab_ex,</span>
+<span id="cb4-3"><a href="#cb4-3"></a>                   <span class="dt">nInd =</span> <span class="dv">1000</span>, <span class="dt">nSim =</span> <span class="dv">1</span>, </span>
+<span id="cb4-4"><a href="#cb4-4"></a>                   <span class="dt">nCV.iter =</span> <span class="dv">1</span>, <span class="dt">models =</span> <span class="st">&quot;rrBLUP&quot;</span>)</span></code></pre></div>
+<p>The function returns a list, one element of which is called <code>predictions.</code> This element is itself a list of matrices containing the predictions for each trait. They can be combined as such:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>predictions1 &lt;-<span class="st"> </span><span class="kw">lapply</span>(<span class="dt">X =</span> out<span class="op">$</span>predictions, <span class="dt">FUN =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb5-2"><a href="#cb5-2"></a>  x1 &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">apply</span>(<span class="dt">X =</span> x, <span class="dt">MARGIN =</span> <span class="dv">2</span>, <span class="dt">FUN =</span> unlist), <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)</span>
+<span id="cb5-3"><a href="#cb5-3"></a>  <span class="kw">cbind</span>(x1[,<span class="kw">c</span>(<span class="st">&quot;Par1&quot;</span>, <span class="st">&quot;Par2&quot;</span>)], <span class="kw">sapply</span>(<span class="dt">X =</span> x1[,<span class="op">-</span><span class="dv">1</span><span class="op">:-</span><span class="dv">2</span>], as.numeric)) </span>
+<span id="cb5-4"><a href="#cb5-4"></a>})</span>
+<span id="cb5-5"><a href="#cb5-5"></a></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="co"># Display the first few lines of the predictions for grain yield</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(predictions1<span class="op">$</span>Yield_param.df))</span></code></pre></div>
+<table style="width:100%;">
+<colgroup>
+<col width="3%"></col>
+<col width="4%"></col>
+<col width="5%"></col>
+<col width="5%"></col>
+<col width="4%"></col>
+<col width="4%"></col>
+<col width="4%"></col>
+<col width="5%"></col>
+<col width="4%"></col>
+<col width="4%"></col>
+<col width="5%"></col>
+<col width="5%"></col>
+<col width="6%"></col>
+<col width="6%"></col>
+<col width="6%"></col>
+<col width="7%"></col>
+<col width="4%"></col>
+<col width="4%"></col>
+<col width="6%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Par1</th>
+<th align="left">Par2</th>
+<th align="right">midPar.Pheno</th>
+<th align="right">midPar.GEBV</th>
+<th align="right">pred.mu</th>
+<th align="right">pred.mu_sd</th>
+<th align="right">pred.varG</th>
+<th align="right">pred.varG_sd</th>
+<th align="right">mu.sp_low</th>
+<th align="right">mu.sp_high</th>
+<th align="right">low.resp_FHB</th>
+<th align="right">low.resp_DON</th>
+<th align="right">low.resp_Height</th>
+<th align="right">high.resp_FHB</th>
+<th align="right">high.resp_DON</th>
+<th align="right">high.resp_Height</th>
+<th align="right">cor_w/_FHB</th>
+<th align="right">cor_w/_DON</th>
+<th align="right">cor_w/_Height</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">FEG66-08</td>
+<td align="left">MN97-125</td>
+<td align="right">99.200</td>
+<td align="right">100.65607</td>
+<td align="right">100.58065</td>
+<td align="right">NA</td>
+<td align="right">7.564859</td>
+<td align="right">NA</td>
+<td align="right">95.81135</td>
+<td align="right">105.2983</td>
+<td align="right">23.16470</td>
+<td align="right">23.84100</td>
+<td align="right">78.78625</td>
+<td align="right">25.01624</td>
+<td align="right">25.13016</td>
+<td align="right">75.91027</td>
+<td align="right">0.2572561</td>
+<td align="right">0.2422184</td>
+<td align="right">-0.3199704</td>
+</tr>
+<tr class="even">
+<td align="left">MN99-71</td>
+<td align="left">FEG90-31</td>
+<td align="right">NaN</td>
+<td align="right">99.17635</td>
+<td align="right">99.12126</td>
+<td align="right">NA</td>
+<td align="right">5.255394</td>
+<td align="right">NA</td>
+<td align="right">95.36126</td>
+<td align="right">103.0920</td>
+<td align="right">21.57383</td>
+<td align="right">23.55555</td>
+<td align="right">77.93688</td>
+<td align="right">24.66107</td>
+<td align="right">25.09007</td>
+<td align="right">75.62009</td>
+<td align="right">0.4670046</td>
+<td align="right">0.1604766</td>
+<td align="right">-0.1805932</td>
+</tr>
+<tr class="odd">
+<td align="left">MN96-141</td>
+<td align="left">FEG183-52</td>
+<td align="right">NaN</td>
+<td align="right">101.28761</td>
+<td align="right">101.24542</td>
+<td align="right">NA</td>
+<td align="right">5.664738</td>
+<td align="right">NA</td>
+<td align="right">97.12738</td>
+<td align="right">105.3532</td>
+<td align="right">23.74467</td>
+<td align="right">23.78425</td>
+<td align="right">79.70719</td>
+<td align="right">27.32846</td>
+<td align="right">28.44027</td>
+<td align="right">76.12451</td>
+<td align="right">0.7288072</td>
+<td align="right">0.7473355</td>
+<td align="right">-0.5407719</td>
+</tr>
+<tr class="even">
+<td align="left">MN99-02</td>
+<td align="left">FEG183-52</td>
+<td align="right">NaN</td>
+<td align="right">100.78451</td>
+<td align="right">100.71886</td>
+<td align="right">NA</td>
+<td align="right">10.085053</td>
+<td align="right">NA</td>
+<td align="right">95.33375</td>
+<td align="right">106.1531</td>
+<td align="right">25.71896</td>
+<td align="right">23.94873</td>
+<td align="right">74.93540</td>
+<td align="right">26.41312</td>
+<td align="right">26.65181</td>
+<td align="right">73.33489</td>
+<td align="right">0.1153523</td>
+<td align="right">0.3903699</td>
+<td align="right">-0.1438686</td>
+</tr>
+<tr class="odd">
+<td align="left">FEG99-10</td>
+<td align="left">FEG148-56</td>
+<td align="right">NaN</td>
+<td align="right">98.68505</td>
+<td align="right">98.78295</td>
+<td align="right">NA</td>
+<td align="right">4.046123</td>
+<td align="right">NA</td>
+<td align="right">95.36134</td>
+<td align="right">102.2904</td>
+<td align="right">19.56935</td>
+<td align="right">20.26895</td>
+<td align="right">85.53316</td>
+<td align="right">23.07361</td>
+<td align="right">24.19603</td>
+<td align="right">80.09071</td>
+<td align="right">0.5620461</td>
+<td align="right">0.6152524</td>
+<td align="right">-0.5809222</td>
+</tr>
+<tr class="even">
+<td align="left">MN99-62</td>
+<td align="left">MN01-46</td>
+<td align="right">105.775</td>
+<td align="right">102.29724</td>
+<td align="right">102.27109</td>
+<td align="right">NA</td>
+<td align="right">5.045291</td>
+<td align="right">NA</td>
+<td align="right">98.53626</td>
+<td align="right">106.0721</td>
+<td align="right">26.09207</td>
+<td align="right">28.39819</td>
+<td align="right">73.20279</td>
+<td align="right">26.39339</td>
+<td align="right">28.49207</td>
+<td align="right">74.12016</td>
+<td align="right">0.2088950</td>
+<td align="right">-0.1179521</td>
+<td align="right">0.3326492</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="predictions-using-deterministic-equations" class="section level2">
+<h2>Predictions using deterministic equations</h2>
+<p>Generating predictions via simulated populations can become computationally burdensome when many thousands or hundreds of thousands of crosses are possible. Fortunately, deterministic equations are available to generate equivalent predictions in a fraction of the time. These equations are provided in the <code>pop.predict2</code> and <code>pop_predict2</code> functions.</p>
+<p>The <code>pop.predict2</code> function takes arguments in the same format as <code>pop.predict</code>. We have eliminated the arguments for marker filtering and imputation and cross-validation, as the <code>pop.predict2</code> function does not support these steps. (You may continue to conduct cross-validation using the <code>x.val</code> function.) Therefore, the genotype data input for <code>pop.predict2</code> <strong>must not contain any missing data</strong>. Further, these predictions assume fully inbred parents, so marker genotypes must only be coded as -1 or 1. The data <code>G.in_ex_imputed</code> contains genotype data that is formatted properly.</p>
+<p>Below is an example of using the <code>pop.predict2</code> function:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>out2 &lt;-<span class="st"> </span><span class="kw">pop.predict2</span>(<span class="dt">G.in =</span> G.in_ex_imputed, <span class="dt">y.in =</span> y.in_ex, <span class="dt">map.in =</span> map.in_ex,</span>
+<span id="cb6-2"><a href="#cb6-2"></a>                     <span class="dt">crossing.table =</span> cross.tab_ex, <span class="dt">models =</span> <span class="st">&quot;rrBLUP&quot;</span>)</span>
+<span id="cb6-3"><a href="#cb6-3"></a></span>
+<span id="cb6-4"><a href="#cb6-4"></a>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(<span class="kw">subset</span>(out2, trait <span class="op">==</span><span class="st"> &quot;Yield&quot;</span>)))</span></code></pre></div>
+<table style="width:100%;">
+<colgroup>
+<col width="0%"></col>
+<col width="2%"></col>
+<col width="3%"></col>
+<col width="1%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="4%"></col>
+<col width="4%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="4%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="8%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">parent1</th>
+<th align="left">parent2</th>
+<th align="left">trait</th>
+<th align="right">pred_mu</th>
+<th align="right">pred_varG</th>
+<th align="right">pred_musp_low</th>
+<th align="right">pred_musp_high</th>
+<th align="right">cor_w_FHB</th>
+<th align="right">cor_w_DON</th>
+<th align="right">cor_w_Yield</th>
+<th align="right">cor_w_Height</th>
+<th align="right">pred_cor_musp_low_FHB</th>
+<th align="right">pred_cor_musp_low_DON</th>
+<th align="right">pred_cor_musp_low_Yield</th>
+<th align="right">pred_cor_musp_low_Height</th>
+<th align="right">pred_cor_musp_high_FHB</th>
+<th align="right">pred_cor_musp_high_DON</th>
+<th align="right">pred_cor_musp_high_Yield</th>
+<th align="right">pred_cor_musp_high_Height</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3</td>
+<td align="left">FEG66-08</td>
+<td align="left">MN97-125</td>
+<td align="left">Yield</td>
+<td align="right">100.41166</td>
+<td align="right">7.768361</td>
+<td align="right">95.52021</td>
+<td align="right">105.3031</td>
+<td align="right">0.3412831</td>
+<td align="right">0.3303378</td>
+<td align="right">NA</td>
+<td align="right">-0.4004154</td>
+<td align="right">22.27035</td>
+<td align="right">23.76433</td>
+<td align="right">NA</td>
+<td align="right">78.84012</td>
+<td align="right">24.96750</td>
+<td align="right">25.91641</td>
+<td align="right">NA</td>
+<td align="right">75.11838</td>
+</tr>
+<tr class="even">
+<td align="left">7</td>
+<td align="left">MN99-71</td>
+<td align="left">FEG90-31</td>
+<td align="left">Yield</td>
+<td align="right">98.98546</td>
+<td align="right">5.298104</td>
+<td align="right">94.94591</td>
+<td align="right">103.0250</td>
+<td align="right">0.4959745</td>
+<td align="right">0.2776666</td>
+<td align="right">NA</td>
+<td align="right">-0.1612311</td>
+<td align="right">21.86563</td>
+<td align="right">23.41697</td>
+<td align="right">NA</td>
+<td align="right">77.04669</td>
+<td align="right">24.85938</td>
+<td align="right">25.18159</td>
+<td align="right">NA</td>
+<td align="right">75.75153</td>
+</tr>
+<tr class="odd">
+<td align="left">11</td>
+<td align="left">MN96-141</td>
+<td align="left">FEG183-52</td>
+<td align="left">Yield</td>
+<td align="right">101.07137</td>
+<td align="right">5.571654</td>
+<td align="right">96.92884</td>
+<td align="right">105.2139</td>
+<td align="right">0.6132612</td>
+<td align="right">0.6961326</td>
+<td align="right">NA</td>
+<td align="right">-0.4603399</td>
+<td align="right">24.36629</td>
+<td align="right">23.67733</td>
+<td align="right">NA</td>
+<td align="right">79.59345</td>
+<td align="right">27.88028</td>
+<td align="right">28.40806</td>
+<td align="right">NA</td>
+<td align="right">75.16009</td>
+</tr>
+<tr class="even">
+<td align="left">15</td>
+<td align="left">MN99-02</td>
+<td align="left">FEG183-52</td>
+<td align="left">Yield</td>
+<td align="right">100.82967</td>
+<td align="right">9.499736</td>
+<td align="right">95.42053</td>
+<td align="right">106.2388</td>
+<td align="right">0.0249962</td>
+<td align="right">0.4211875</td>
+<td align="right">NA</td>
+<td align="right">-0.1929275</td>
+<td align="right">26.15174</td>
+<td align="right">23.73807</td>
+<td align="right">NA</td>
+<td align="right">74.76672</td>
+<td align="right">26.29180</td>
+<td align="right">26.60344</td>
+<td align="right">NA</td>
+<td align="right">72.86270</td>
+</tr>
+<tr class="odd">
+<td align="left">19</td>
+<td align="left">FEG99-10</td>
+<td align="left">FEG148-56</td>
+<td align="left">Yield</td>
+<td align="right">98.01593</td>
+<td align="right">4.121802</td>
+<td align="right">94.45292</td>
+<td align="right">101.5789</td>
+<td align="right">0.5959335</td>
+<td align="right">0.6401323</td>
+<td align="right">NA</td>
+<td align="right">-0.5080571</td>
+<td align="right">19.67552</td>
+<td align="right">19.58928</td>
+<td align="right">NA</td>
+<td align="right">85.81854</td>
+<td align="right">23.38585</td>
+<td align="right">24.23917</td>
+<td align="right">NA</td>
+<td align="right">80.69997</td>
+</tr>
+<tr class="even">
+<td align="left">23</td>
+<td align="left">MN99-62</td>
+<td align="left">MN01-46</td>
+<td align="left">Yield</td>
+<td align="right">102.51094</td>
+<td align="right">4.673196</td>
+<td align="right">98.71709</td>
+<td align="right">106.3048</td>
+<td align="right">0.0755600</td>
+<td align="right">-0.0827658</td>
+<td align="right">NA</td>
+<td align="right">0.4010907</td>
+<td align="right">26.07342</td>
+<td align="right">28.37124</td>
+<td align="right">NA</td>
+<td align="right">72.67125</td>
+<td align="right">26.20580</td>
+<td align="right">28.16102</td>
+<td align="right">NA</td>
+<td align="right">74.51340</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Note that the output of <code>pop.predict2</code> is no longer a list, but a data frame containing the combined predictions for all traits.</p>
+</blockquote>
+<p>The formatting requirements of <code>G.in</code> for <code>pop.predict</code> and <code>pop.predict2</code> are admittedly confusing. Marker genotype data is commonly stored as a <em>n</em> x <em>p</em> matrix, where <em>n</em> is the number of entries and <em>p</em> the number of markers. The function <code>pop_predict2</code> accommodates this general marker data storage. Here is an example:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>out3 &lt;-<span class="st"> </span><span class="kw">pop_predict2</span>(<span class="dt">M =</span> G.in_ex_mat, <span class="dt">y.in =</span> y.in_ex, <span class="dt">map.in =</span> map.in_ex,</span>
+<span id="cb7-2"><a href="#cb7-2"></a>                     <span class="dt">crossing.table =</span> cross.tab_ex, <span class="dt">models =</span> <span class="st">&quot;rrBLUP&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3"></a></span>
+<span id="cb7-4"><a href="#cb7-4"></a>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(<span class="kw">subset</span>(out2, trait <span class="op">==</span><span class="st"> &quot;Yield&quot;</span>)))</span></code></pre></div>
+<table style="width:100%;">
+<colgroup>
+<col width="0%"></col>
+<col width="2%"></col>
+<col width="3%"></col>
+<col width="1%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="4%"></col>
+<col width="4%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="4%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="8%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">parent1</th>
+<th align="left">parent2</th>
+<th align="left">trait</th>
+<th align="right">pred_mu</th>
+<th align="right">pred_varG</th>
+<th align="right">pred_musp_low</th>
+<th align="right">pred_musp_high</th>
+<th align="right">cor_w_FHB</th>
+<th align="right">cor_w_DON</th>
+<th align="right">cor_w_Yield</th>
+<th align="right">cor_w_Height</th>
+<th align="right">pred_cor_musp_low_FHB</th>
+<th align="right">pred_cor_musp_low_DON</th>
+<th align="right">pred_cor_musp_low_Yield</th>
+<th align="right">pred_cor_musp_low_Height</th>
+<th align="right">pred_cor_musp_high_FHB</th>
+<th align="right">pred_cor_musp_high_DON</th>
+<th align="right">pred_cor_musp_high_Yield</th>
+<th align="right">pred_cor_musp_high_Height</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3</td>
+<td align="left">FEG66-08</td>
+<td align="left">MN97-125</td>
+<td align="left">Yield</td>
+<td align="right">100.41166</td>
+<td align="right">7.768361</td>
+<td align="right">95.52021</td>
+<td align="right">105.3031</td>
+<td align="right">0.3412831</td>
+<td align="right">0.3303378</td>
+<td align="right">NA</td>
+<td align="right">-0.4004154</td>
+<td align="right">22.27035</td>
+<td align="right">23.76433</td>
+<td align="right">NA</td>
+<td align="right">78.84012</td>
+<td align="right">24.96750</td>
+<td align="right">25.91641</td>
+<td align="right">NA</td>
+<td align="right">75.11838</td>
+</tr>
+<tr class="even">
+<td align="left">7</td>
+<td align="left">MN99-71</td>
+<td align="left">FEG90-31</td>
+<td align="left">Yield</td>
+<td align="right">98.98546</td>
+<td align="right">5.298104</td>
+<td align="right">94.94591</td>
+<td align="right">103.0250</td>
+<td align="right">0.4959745</td>
+<td align="right">0.2776666</td>
+<td align="right">NA</td>
+<td align="right">-0.1612311</td>
+<td align="right">21.86563</td>
+<td align="right">23.41697</td>
+<td align="right">NA</td>
+<td align="right">77.04669</td>
+<td align="right">24.85938</td>
+<td align="right">25.18159</td>
+<td align="right">NA</td>
+<td align="right">75.75153</td>
+</tr>
+<tr class="odd">
+<td align="left">11</td>
+<td align="left">MN96-141</td>
+<td align="left">FEG183-52</td>
+<td align="left">Yield</td>
+<td align="right">101.07137</td>
+<td align="right">5.571654</td>
+<td align="right">96.92884</td>
+<td align="right">105.2139</td>
+<td align="right">0.6132612</td>
+<td align="right">0.6961326</td>
+<td align="right">NA</td>
+<td align="right">-0.4603399</td>
+<td align="right">24.36629</td>
+<td align="right">23.67733</td>
+<td align="right">NA</td>
+<td align="right">79.59345</td>
+<td align="right">27.88028</td>
+<td align="right">28.40806</td>
+<td align="right">NA</td>
+<td align="right">75.16009</td>
+</tr>
+<tr class="even">
+<td align="left">15</td>
+<td align="left">MN99-02</td>
+<td align="left">FEG183-52</td>
+<td align="left">Yield</td>
+<td align="right">100.82967</td>
+<td align="right">9.499736</td>
+<td align="right">95.42053</td>
+<td align="right">106.2388</td>
+<td align="right">0.0249962</td>
+<td align="right">0.4211875</td>
+<td align="right">NA</td>
+<td align="right">-0.1929275</td>
+<td align="right">26.15174</td>
+<td align="right">23.73807</td>
+<td align="right">NA</td>
+<td align="right">74.76672</td>
+<td align="right">26.29180</td>
+<td align="right">26.60344</td>
+<td align="right">NA</td>
+<td align="right">72.86270</td>
+</tr>
+<tr class="odd">
+<td align="left">19</td>
+<td align="left">FEG99-10</td>
+<td align="left">FEG148-56</td>
+<td align="left">Yield</td>
+<td align="right">98.01593</td>
+<td align="right">4.121802</td>
+<td align="right">94.45292</td>
+<td align="right">101.5789</td>
+<td align="right">0.5959335</td>
+<td align="right">0.6401323</td>
+<td align="right">NA</td>
+<td align="right">-0.5080571</td>
+<td align="right">19.67552</td>
+<td align="right">19.58928</td>
+<td align="right">NA</td>
+<td align="right">85.81854</td>
+<td align="right">23.38585</td>
+<td align="right">24.23917</td>
+<td align="right">NA</td>
+<td align="right">80.69997</td>
+</tr>
+<tr class="even">
+<td align="left">23</td>
+<td align="left">MN99-62</td>
+<td align="left">MN01-46</td>
+<td align="left">Yield</td>
+<td align="right">102.51094</td>
+<td align="right">4.673196</td>
+<td align="right">98.71709</td>
+<td align="right">106.3048</td>
+<td align="right">0.0755600</td>
+<td align="right">-0.0827658</td>
+<td align="right">NA</td>
+<td align="right">0.4010907</td>
+<td align="right">26.07342</td>
+<td align="right">28.37124</td>
+<td align="right">NA</td>
+<td align="right">72.67125</td>
+<td align="right">26.20580</td>
+<td align="right">28.16102</td>
+<td align="right">NA</td>
+<td align="right">74.51340</td>
+</tr>
+</tbody>
+</table>
+<div id="benchmarking-and-comparisons" class="section level3">
+<h3>Benchmarking and comparisons</h3>
+<p>The code below compares the functions <code>pop.predict</code> and <code>pop.predict2</code> with respect to computation time and results:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>time1 &lt;-<span class="st"> </span><span class="kw">system.time</span>({</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="kw">capture.output</span>(pop.predict.out &lt;-<span class="st"> </span><span class="kw">pop.predict</span>(</span>
+<span id="cb8-3"><a href="#cb8-3"></a>    <span class="dt">G.in =</span> G.in_ex_imputed, <span class="dt">y.in =</span> y.in_ex, <span class="dt">map.in =</span> map.in_ex, <span class="dt">crossing.table =</span> cross.tab_ex,</span>
+<span id="cb8-4"><a href="#cb8-4"></a>    <span class="dt">nInd =</span> <span class="dv">1000</span>, <span class="dt">nSim =</span> <span class="dv">1</span>, <span class="dt">nCV.iter =</span> <span class="dv">1</span>, <span class="dt">models =</span> <span class="st">&quot;rrBLUP&quot;</span>))</span>
+<span id="cb8-5"><a href="#cb8-5"></a>})</span>
+<span id="cb8-6"><a href="#cb8-6"></a></span>
+<span id="cb8-7"><a href="#cb8-7"></a>time2 &lt;-<span class="st"> </span><span class="kw">system.time</span>({pop.predict2.out &lt;-<span class="st"> </span><span class="kw">pop.predict2</span>(</span>
+<span id="cb8-8"><a href="#cb8-8"></a>  <span class="dt">G.in =</span> G.in_ex_imputed, <span class="dt">y.in =</span> y.in_ex, <span class="dt">map.in =</span> map.in_ex,</span>
+<span id="cb8-9"><a href="#cb8-9"></a>  <span class="dt">crossing.table =</span> cross.tab_ex,<span class="dt">model =</span> <span class="st">&quot;rrBLUP&quot;</span>)})</span>
+<span id="cb8-10"><a href="#cb8-10"></a></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="co"># Print the time (seconds) required for each function.</span></span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="kw">c</span>(<span class="dt">pop.predict =</span> time1[[<span class="dv">3</span>]], <span class="dt">pop.predict2 =</span> time2[[<span class="dv">3</span>]])</span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="co">#&gt;  pop.predict pop.predict2 </span></span>
+<span id="cb8-14"><a href="#cb8-14"></a><span class="co">#&gt;        23.60         0.45</span></span></code></pre></div>
+<p>Plot results</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>predictions1 &lt;-<span class="st"> </span><span class="kw">lapply</span>(<span class="dt">X =</span> pop.predict.out<span class="op">$</span>predictions, <span class="dt">FUN =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb9-2"><a href="#cb9-2"></a>  x1 &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">apply</span>(<span class="dt">X =</span> x, <span class="dt">MARGIN =</span> <span class="dv">2</span>, <span class="dt">FUN =</span> unlist), <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)</span>
+<span id="cb9-3"><a href="#cb9-3"></a>  <span class="kw">cbind</span>(x1[,<span class="kw">c</span>(<span class="st">&quot;Par1&quot;</span>, <span class="st">&quot;Par2&quot;</span>)], <span class="kw">sapply</span>(<span class="dt">X =</span> x1[,<span class="op">-</span><span class="dv">1</span><span class="op">:-</span><span class="dv">2</span>], as.numeric))</span>
+<span id="cb9-4"><a href="#cb9-4"></a>})</span>
+<span id="cb9-5"><a href="#cb9-5"></a></span>
+<span id="cb9-6"><a href="#cb9-6"></a>pop.predict.out1 &lt;-<span class="st"> </span>predictions1<span class="op">$</span>Yield_param.df[,<span class="kw">c</span>(<span class="st">&quot;Par1&quot;</span>, <span class="st">&quot;Par2&quot;</span>, <span class="st">&quot;pred.varG&quot;</span>)]</span>
+<span id="cb9-7"><a href="#cb9-7"></a>pop.predict2.out1 &lt;-<span class="st"> </span><span class="kw">subset</span>(pop.predict2.out, trait <span class="op">==</span><span class="st"> &quot;Yield&quot;</span>, <span class="kw">c</span>(parent1, parent2, pred_varG))</span>
+<span id="cb9-8"><a href="#cb9-8"></a></span>
+<span id="cb9-9"><a href="#cb9-9"></a>toplot &lt;-<span class="st"> </span><span class="kw">merge</span>(pop.predict.out1, pop.predict2.out1, <span class="dt">by.x =</span> <span class="kw">c</span>(<span class="st">&quot;Par1&quot;</span>, <span class="st">&quot;Par2&quot;</span>),</span>
+<span id="cb9-10"><a href="#cb9-10"></a>                <span class="dt">by.y =</span> <span class="kw">c</span>(<span class="st">&quot;parent1&quot;</span>, <span class="st">&quot;parent2&quot;</span>))</span>
+<span id="cb9-11"><a href="#cb9-11"></a></span>
+<span id="cb9-12"><a href="#cb9-12"></a><span class="kw">plot</span>(pred.varG <span class="op">~</span><span class="st"> </span>pred_varG, toplot,</span>
+<span id="cb9-13"><a href="#cb9-13"></a>     <span class="dt">xlab =</span> <span class="st">&quot;pop.predict2&quot;</span>, <span class="dt">ylab =</span> <span class="st">&quot;pop.predict&quot;</span>,</span>
+<span id="cb9-14"><a href="#cb9-14"></a>     <span class="dt">main =</span> <span class="st">&quot;Comparsion of predicted genetic variance&quot;</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+</div>
+<div id="multi-parent-populations" class="section level2">
+<h2>Multi-parent populations</h2>
+<p><code>PopVar</code> also includes functions for predicting the mean, genetic variance, and superior progeny mean of multi-parent populations. The <code>mppop.predict</code> function takes the same inputs as <code>pop.predict</code> or <code>pop.predict2</code>, and the <code>mppop_predict2</code> function takes the same inputs as <code>pop_predict2</code>. Both require the additional argument <code>n.parents</code>, which will determine whether the populations are formed by 2- or 4-way matings (support for 8-way populations is forthcoming.)</p>
+<p>Below is an example of using the <code>mppop.predict</code> function:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="co"># Generate predictions for all possible 4-way crosses of 10 sample parents</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a>sample_parents &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">unique</span>(<span class="kw">unlist</span>(cross.tab_ex)), <span class="dv">10</span>)</span>
+<span id="cb10-3"><a href="#cb10-3"></a></span>
+<span id="cb10-4"><a href="#cb10-4"></a>mp_out &lt;-<span class="st"> </span><span class="kw">mppop.predict</span>(<span class="dt">G.in =</span> G.in_ex_imputed, <span class="dt">y.in =</span> y.in_ex, <span class="dt">map.in =</span> map.in_ex,</span>
+<span id="cb10-5"><a href="#cb10-5"></a>                        <span class="dt">parents =</span> sample_parents, <span class="dt">n.parents =</span> <span class="dv">4</span>, <span class="dt">models =</span> <span class="st">&quot;rrBLUP&quot;</span>)</span>
+<span id="cb10-6"><a href="#cb10-6"></a></span>
+<span id="cb10-7"><a href="#cb10-7"></a>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(<span class="kw">subset</span>(mp_out, trait <span class="op">==</span><span class="st"> &quot;Yield&quot;</span>)))</span></code></pre></div>
+<table>
+<colgroup>
+<col width="0%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="2%"></col>
+<col width="2%"></col>
+<col width="1%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="4%"></col>
+<col width="4%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="1%"></col>
+<col width="3%"></col>
+<col width="6%"></col>
+<col width="6%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="8%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">parent1</th>
+<th align="left">parent2</th>
+<th align="left">parent3</th>
+<th align="left">parent4</th>
+<th align="left">trait</th>
+<th align="right">pred_mu</th>
+<th align="right">pred_varG</th>
+<th align="right">pred_musp_low</th>
+<th align="right">pred_musp_high</th>
+<th align="right">FHB</th>
+<th align="right">DON</th>
+<th align="right">Yield</th>
+<th align="right">Height</th>
+<th align="right">pred_cor_musp_low_FHB</th>
+<th align="right">pred_cor_musp_low_DON</th>
+<th align="right">pred_cor_musp_low_Yield</th>
+<th align="right">pred_cor_musp_low_Height</th>
+<th align="right">pred_cor_musp_high_FHB</th>
+<th align="right">pred_cor_musp_high_DON</th>
+<th align="right">pred_cor_musp_high_Yield</th>
+<th align="right">pred_cor_musp_high_Height</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">FEG69-38</td>
+<td align="left">Yield</td>
+<td align="right">98.40493</td>
+<td align="right">11.28119</td>
+<td align="right">92.51038</td>
+<td align="right">104.2995</td>
+<td align="right">0.4833239</td>
+<td align="right">0.5444313</td>
+<td align="right">NA</td>
+<td align="right">-0.5193930</td>
+<td align="right">19.06880</td>
+<td align="right">19.25397</td>
+<td align="right">NA</td>
+<td align="right">82.43910</td>
+<td align="right">22.97332</td>
+<td align="right">23.63755</td>
+<td align="right">NA</td>
+<td align="right">77.23833</td>
+</tr>
+<tr class="even">
+<td align="left">7</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">FEG96-10</td>
+<td align="left">Yield</td>
+<td align="right">99.94246</td>
+<td align="right">10.31859</td>
+<td align="right">94.30501</td>
+<td align="right">105.5799</td>
+<td align="right">0.5540532</td>
+<td align="right">0.5974667</td>
+<td align="right">NA</td>
+<td align="right">-0.4508954</td>
+<td align="right">17.88810</td>
+<td align="right">17.65336</td>
+<td align="right">NA</td>
+<td align="right">82.11881</td>
+<td align="right">22.24685</td>
+<td align="right">22.70391</td>
+<td align="right">NA</td>
+<td align="right">77.89269</td>
+</tr>
+<tr class="odd">
+<td align="left">11</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">MN01-60</td>
+<td align="left">Yield</td>
+<td align="right">100.72094</td>
+<td align="right">11.78423</td>
+<td align="right">94.69641</td>
+<td align="right">106.7455</td>
+<td align="right">0.6228535</td>
+<td align="right">0.6181337</td>
+<td align="right">NA</td>
+<td align="right">-0.5962415</td>
+<td align="right">18.82493</td>
+<td align="right">19.21492</td>
+<td align="right">NA</td>
+<td align="right">80.25695</td>
+<td align="right">24.36994</td>
+<td align="right">24.57592</td>
+<td align="right">NA</td>
+<td align="right">74.25710</td>
+</tr>
+<tr class="even">
+<td align="left">15</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">MN96-155</td>
+<td align="left">Yield</td>
+<td align="right">101.29767</td>
+<td align="right">13.99540</td>
+<td align="right">94.73221</td>
+<td align="right">107.8631</td>
+<td align="right">0.6418433</td>
+<td align="right">0.6859015</td>
+<td align="right">NA</td>
+<td align="right">-0.5939293</td>
+<td align="right">19.28857</td>
+<td align="right">19.74097</td>
+<td align="right">NA</td>
+<td align="right">80.67510</td>
+<td align="right">25.14533</td>
+<td align="right">25.67244</td>
+<td align="right">NA</td>
+<td align="right">74.84535</td>
+</tr>
+<tr class="odd">
+<td align="left">19</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">MN96-186</td>
+<td align="left">Yield</td>
+<td align="right">101.83161</td>
+<td align="right">11.53709</td>
+<td align="right">95.87058</td>
+<td align="right">107.7926</td>
+<td align="right">0.6502867</td>
+<td align="right">0.6718568</td>
+<td align="right">NA</td>
+<td align="right">-0.6147056</td>
+<td align="right">18.62670</td>
+<td align="right">19.29492</td>
+<td align="right">NA</td>
+<td align="right">80.69938</td>
+<td align="right">24.34667</td>
+<td align="right">25.22889</td>
+<td align="right">NA</td>
+<td align="right">74.68221</td>
+</tr>
+<tr class="even">
+<td align="left">23</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">MN97-28</td>
+<td align="left">Yield</td>
+<td align="right">100.41829</td>
+<td align="right">9.53555</td>
+<td align="right">94.99895</td>
+<td align="right">105.8376</td>
+<td align="right">0.6111788</td>
+<td align="right">0.6572907</td>
+<td align="right">NA</td>
+<td align="right">-0.5632576</td>
+<td align="right">18.92810</td>
+<td align="right">19.54156</td>
+<td align="right">NA</td>
+<td align="right">80.49933</td>
+<td align="right">24.15649</td>
+<td align="right">25.20063</td>
+<td align="right">NA</td>
+<td align="right">75.29882</td>
+</tr>
+</tbody>
+</table>
+<p>Below is an example of using the <code>mppop_predict2</code> function:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="co"># Generate predictions for all possible 4-way crosses of 10 sample parents</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a>mp_out2 &lt;-<span class="st"> </span><span class="kw">mppop_predict2</span>(<span class="dt">M =</span> G.in_ex_mat, <span class="dt">y.in =</span> y.in_ex, <span class="dt">map.in =</span> map.in_ex,</span>
+<span id="cb11-3"><a href="#cb11-3"></a>                          <span class="dt">parents =</span> sample_parents, <span class="dt">n.parents =</span> <span class="dv">4</span>, <span class="dt">models =</span> <span class="st">&quot;rrBLUP&quot;</span>)</span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(<span class="kw">subset</span>(mp_out2, trait <span class="op">==</span><span class="st"> &quot;Yield&quot;</span>)))</span></code></pre></div>
+<table>
+<colgroup>
+<col width="0%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="2%"></col>
+<col width="2%"></col>
+<col width="1%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="4%"></col>
+<col width="4%"></col>
+<col width="3%"></col>
+<col width="3%"></col>
+<col width="1%"></col>
+<col width="3%"></col>
+<col width="6%"></col>
+<col width="6%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="7%"></col>
+<col width="8%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">parent1</th>
+<th align="left">parent2</th>
+<th align="left">parent3</th>
+<th align="left">parent4</th>
+<th align="left">trait</th>
+<th align="right">pred_mu</th>
+<th align="right">pred_varG</th>
+<th align="right">pred_musp_low</th>
+<th align="right">pred_musp_high</th>
+<th align="right">FHB</th>
+<th align="right">DON</th>
+<th align="right">Yield</th>
+<th align="right">Height</th>
+<th align="right">pred_cor_musp_low_FHB</th>
+<th align="right">pred_cor_musp_low_DON</th>
+<th align="right">pred_cor_musp_low_Yield</th>
+<th align="right">pred_cor_musp_low_Height</th>
+<th align="right">pred_cor_musp_high_FHB</th>
+<th align="right">pred_cor_musp_high_DON</th>
+<th align="right">pred_cor_musp_high_Yield</th>
+<th align="right">pred_cor_musp_high_Height</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">FEG69-38</td>
+<td align="left">Yield</td>
+<td align="right">98.40493</td>
+<td align="right">11.28119</td>
+<td align="right">92.51038</td>
+<td align="right">104.2995</td>
+<td align="right">0.4833239</td>
+<td align="right">0.5444313</td>
+<td align="right">NA</td>
+<td align="right">-0.5193930</td>
+<td align="right">19.06880</td>
+<td align="right">19.25397</td>
+<td align="right">NA</td>
+<td align="right">82.43910</td>
+<td align="right">22.97332</td>
+<td align="right">23.63755</td>
+<td align="right">NA</td>
+<td align="right">77.23833</td>
+</tr>
+<tr class="even">
+<td align="left">7</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">FEG96-10</td>
+<td align="left">Yield</td>
+<td align="right">99.94246</td>
+<td align="right">10.31859</td>
+<td align="right">94.30501</td>
+<td align="right">105.5799</td>
+<td align="right">0.5540532</td>
+<td align="right">0.5974667</td>
+<td align="right">NA</td>
+<td align="right">-0.4508954</td>
+<td align="right">17.88810</td>
+<td align="right">17.65336</td>
+<td align="right">NA</td>
+<td align="right">82.11881</td>
+<td align="right">22.24685</td>
+<td align="right">22.70391</td>
+<td align="right">NA</td>
+<td align="right">77.89269</td>
+</tr>
+<tr class="odd">
+<td align="left">11</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">MN01-60</td>
+<td align="left">Yield</td>
+<td align="right">100.72094</td>
+<td align="right">11.78423</td>
+<td align="right">94.69641</td>
+<td align="right">106.7455</td>
+<td align="right">0.6228535</td>
+<td align="right">0.6181337</td>
+<td align="right">NA</td>
+<td align="right">-0.5962415</td>
+<td align="right">18.82493</td>
+<td align="right">19.21492</td>
+<td align="right">NA</td>
+<td align="right">80.25695</td>
+<td align="right">24.36994</td>
+<td align="right">24.57592</td>
+<td align="right">NA</td>
+<td align="right">74.25710</td>
+</tr>
+<tr class="even">
+<td align="left">15</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">MN96-155</td>
+<td align="left">Yield</td>
+<td align="right">101.29767</td>
+<td align="right">13.99540</td>
+<td align="right">94.73221</td>
+<td align="right">107.8631</td>
+<td align="right">0.6418433</td>
+<td align="right">0.6859015</td>
+<td align="right">NA</td>
+<td align="right">-0.5939293</td>
+<td align="right">19.28857</td>
+<td align="right">19.74097</td>
+<td align="right">NA</td>
+<td align="right">80.67510</td>
+<td align="right">25.14533</td>
+<td align="right">25.67244</td>
+<td align="right">NA</td>
+<td align="right">74.84535</td>
+</tr>
+<tr class="odd">
+<td align="left">19</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">MN96-186</td>
+<td align="left">Yield</td>
+<td align="right">101.83161</td>
+<td align="right">11.53709</td>
+<td align="right">95.87058</td>
+<td align="right">107.7926</td>
+<td align="right">0.6502867</td>
+<td align="right">0.6718568</td>
+<td align="right">NA</td>
+<td align="right">-0.6147056</td>
+<td align="right">18.62670</td>
+<td align="right">19.29492</td>
+<td align="right">NA</td>
+<td align="right">80.69938</td>
+<td align="right">24.34667</td>
+<td align="right">25.22889</td>
+<td align="right">NA</td>
+<td align="right">74.68221</td>
+</tr>
+<tr class="even">
+<td align="left">23</td>
+<td align="left">FEG141-18</td>
+<td align="left">FEG148-56</td>
+<td align="left">FEG66-06</td>
+<td align="left">MN97-28</td>
+<td align="left">Yield</td>
+<td align="right">100.41829</td>
+<td align="right">9.53555</td>
+<td align="right">94.99895</td>
+<td align="right">105.8376</td>
+<td align="right">0.6111788</td>
+<td align="right">0.6572907</td>
+<td align="right">NA</td>
+<td align="right">-0.5632576</td>
+<td align="right">18.92810</td>
+<td align="right">19.54156</td>
+<td align="right">NA</td>
+<td align="right">80.49933</td>
+<td align="right">24.15649</td>
+<td align="right">25.20063</td>
+<td align="right">NA</td>
+<td align="right">75.29882</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<p>Bernardo, Rex. 2010. Breeding for Quantitative Traits in Plants. 2nd ed. Woodbury, Minnesota: Stemma Press.</p>
+<p>Mohammadi, Mohsen, Tyler Tiede, and Kevin P. Smith. 2015. “PopVar: A Genome-Wide Procedure for Predicting Genetic Variance and Correlated Response in Biparental Breeding Populations.” Crop Science 55 (5): 2068–77. <a href="https://doi.org/10.2135/cropsci2015.01.0030" class="uri">https://doi.org/10.2135/cropsci2015.01.0030</a>.</p>
+<p>Schnell, F. W., and H. F. Utz. 1975. “F1-leistung und elternwahl euphyder züchtung von selbstbefruchtern.” In Bericht über Die Arbeitstagung Der Vereinigung Österreichischer Pflanzenzüchter, 243–48. Gumpenstein, Austria: BAL Gumpenstein.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
