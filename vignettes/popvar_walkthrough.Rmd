@@ -214,7 +214,7 @@ knitr::kable(head(subset(mp_out2, trait == "Yield")))
 
 Bernardo, Rex. 2010. Breeding for Quantitative Traits in Plants. 2nd ed. Woodbury, Minnesota: Stemma Press.
 
-Mohammadi, Mohsen, Tyler Tiede, and Kevin P. Smith. 2015. “PopVar: A Genome-Wide Procedure for Predicting Genetic Variance and Correlated Response in Biparental Breeding Populations.” Crop Science 55 (5): 2068–77. https://doi.org/10.2135/cropsci2015.01.0030.
+Mohammadi, Mohsen, Tyler Tiede, and Kevin P. Smith. 2015. “PopVar: A Genome-Wide Procedure for Predicting Genetic Variance and Correlated Response in Biparental Breeding Populations.” Crop Science 55 (5): 2068–77. <https://doi.org/10.2135/cropsci2015.01.0030>.
 
 Schnell, F. W., and H. F. Utz. 1975. “F1-leistung und elternwahl euphyder züchtung von selbstbefruchtern.” In Bericht über Die Arbeitstagung Der Vereinigung Österreichischer Pflanzenzüchter, 243–48. Gumpenstein, Austria: BAL Gumpenstein.
 

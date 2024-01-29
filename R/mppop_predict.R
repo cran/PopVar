@@ -11,7 +11,7 @@
 #' @param G.in See \code{G.in} in \code{\link[PopVar]{pop.predict}}.
 #' @param y.in See \code{y.in} in \code{\link[PopVar]{pop.predict}}.
 #' @param map.in See \code{map.in} in \code{\link[PopVar]{pop.predict}}.
-#' @param crossing.table See \code{crossing.table} in \code{\link[PopVar]{pop.predict}}.
+#' @param crossing.table A \code{data.frame} with 2 columns (for bi-parental crosses) or 4 columns (for four-way crosses), each of which contains the names of parents to use in a potential cross. Rows contain individual crosses. See Details.
 #' @param parents See \code{parents} in \code{\link[PopVar]{pop.predict}}.
 #' @param n.parents Integer number of parents per cross. May be 2 or 4. If \code{crossing.table} is passed,
 #'  this argument is ignored.
@@ -30,6 +30,12 @@
 #' @details
 #'
 #' Predictions are based on the deterministic equations specified by Allier et al. (2019).
+#' 
+#' In the case of four-way crosses (i.e. 4 parents), the function assumes that the first two parents are mated, 
+#' producing a \eqn{F_1} offspring; then, the next two parents are mated, producing another \eqn{F_1} offspring. 
+#' The two \eqn{F_1} offspring are then mated and inbreeding or doubled haploid induction (if specified) proceeds 
+#' from there. For example, say cross \emph{i} uses parents P1, P2, P3, and P4. P1 and P2 are first mated, 
+#' producing O1; then, P3 and P4 are mated, producing O2; then, O1 and O2 are mated, producing a segregating family.
 #'
 #' The \code{mppop.predict} function takes similarly formatted arguments as the \code{\link[PopVar]{pop.predict}} function
 #' in the \code{PopVar} package. For the sake of simplicity, we also include the \code{mppop_predict2} function, which
@@ -40,12 +46,38 @@
 #'   \item{\code{nIter}: See \code{\link[PopVar]{pop.predict}}}.
 #'   \item{\code{burnIn}: See \code{\link[PopVar]{pop.predict}}}.
 #' }
+#' 
+#' @return
+#' A \code{data.frame} containing predictions of \eqn{\mu}, \eqn{V_G}, and \eqn{\mu_{sp}} for 
+#' each trait for each potential multi-parent cross. When multiple traits are provided, the correlated 
+#' responses and correlation between all pairs of traits is also returned.
+#' 
 #'
 #' @references
 #'
 #' Allier, A., L. Moreau, A. Charcosset, S. Teyssèdre, and C. Lehermeier, 2019 Usefulness Criterion and Post-selection Parental
 #' Contributions in Multi-parental Crosses: Application to Polygenic Trait Introgression. G3 (Bethesda) 9: 1469–1479.
 #' https://doi.org/https://doi.org/10.1534/g3.119.400129
+#' 
+#' 
+#' @examples
+#' \donttest{
+#' 
+#' # Load data
+#' data("think_barley")
+#' 
+#' # Vector with 8 parents
+#' parents <- sample(y.in_ex$Entry, 8)
+#' 
+#' # Create a crossing table with four parents per cross
+#' cross_tab <- as.data.frame(t(combn(x = parents, m = 4)))
+#' names(cross_tab) <- c("parent1", "parent2", "parent3", "parent4")
+#' 
+#' out <- mppop_predict2(M = G.in_ex_mat, y.in = y.in_ex, map.in = map.in_ex, 
+#'                       crossing.table = cross_tab, models = "rrBLUP")
+#' 
+#' }
+#' 
 #'
 #'
 #'

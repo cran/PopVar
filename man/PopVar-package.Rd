@@ -18,6 +18,8 @@ Mohammadi M., T. Tiede, and K.P. Smith. 2015. PopVar: A genome-wide procedure fo
 Sallam, A.H., J.B. Endelman, J-L. Jannink, and K.P. Smith. 2015. Assessing Genomic Selection Prediction Accuracy in a Dynamic Barley Breeding Population. Plant Gen. 8(1)
 }
 \author{
-Tyler Tiede (maintainer) \email{tyler.tiede7@gmail.com} and Mohsen Mohammadi\preformatted{    Many thanks to Kevin Smith for supporting the project and Jeff Neyhart for helping with the initial 'debugging' efforts.
-}
+Tyler Tiede (maintainer) \email{tyler.tiede7@gmail.com} and Mohsen Mohammadi
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{    Many thanks to Kevin Smith for supporting the project and Jeff Neyhart for helping with the initial 'debugging' efforts.
+}\if{html}{\out{</div>}}
 }

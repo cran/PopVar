@@ -12,7 +12,7 @@
 #'          }
 #'          TIP - Set header=\code{FALSE} within \code{\link{read.table}} or \code{\link{read.csv}} when importing a tab-delimited file containing data for \code{G.in}.
 #' @param y.in \code{Matrix} of phenotypic data. First column contains entry (taxa) names found in \code{G.in}, regardless of whether the entry has a phenotype for any or all traits. Additional columns contain phenotypic data; column names should reflect the trait name(s). TIP - Set header=\code{TRUE} within \code{read.table} or \code{read.csv} when importing a tab-delimited file containing dat
-#' @param impute Options include \code{c("EM", "mean", "pass")}. By default (i.e. \code{"EM"}), after filtering missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{"mean"} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP}}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}.
+#' @param impute Options include \code{c("EM", "mean", "pass")}. By default (i.e. \code{"EM"}), after filtering missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP-package}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{"mean"} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP-package}}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}.
 #' @param min.maf Optional \code{numeric} indicating a minimum minor allele frequency (MAF) when filtering \code{G.in}. Markers with an MAF < \code{min.maf} will be removed. Default is \code{0.01} to remove monomorphic markers. Set to \code{0} for no filtering.
 #' @param mkr.cutoff Optional \code{numeric} indicating the maximum missing data per marker when filtering \code{G.in}. Markers missing > \code{mkr.cutoff} data will be removed. Default is \code{0.50}. Set to \code{1} for no filtering.
 #' @param entry.cutoff Optional \code{numeric} indicating the maximum missing genotypic data per entry allowed when filtering \code{G.in}. Entries missing > \code{entry.cutoff} marker data will be removed. Default is \code{0.50}. Set to \code{1} for no filtering.
@@ -25,6 +25,10 @@
 #' @param CV.burnIn Optional \code{integer} argument used by \code{\link[BGLR]{BGLR}} when fitting Bayesian models. Default is \code{750}.
 #' @param CV.nIter  Optional \code{integer} argument used by \code{\link[BGLR]{BGLR}} (\cite{de los Compos and Rodriguez, 2014}) when fitting Bayesian models. Default is \code{1500}.
 #' @param models Optional \code{character vector} of the regression models to be used in CV and to estimate marker effects. Options include \code{rrBLUP, BayesA, BayesB, BayesC, BL, BRR}, one or more may be included at a time. By default all models are tested.
+#' @param saveAt When using models other than "rrBLUP" (i.e. Bayesian models), this is a path and prefix for saving temporary files 
+#' the are produced by the \code{\link[BGLR]{BGLR}} function.
+#' 
+#' 
 #' @return A list containing: \itemize{
 #'            \item \code{CVs} A \code{dataframe} of CV results for each trait/model combination specified
 #'            \item If \code{return.estimates} is \code{TRUE} the additional items will be returned: \itemize{
@@ -38,7 +42,7 @@
 #'            \item \code{CV method 2}: \code{nFold} \strong{independent} validation sets are sampled from the TP and predicted by the remainder. For example, if \eqn{nFold = 10} the TP will be split into 10 equal sets, each containing \eqn{1/10}-th of the TP, which will be predicted by the remaining \eqn{9/10}-ths of the TP. The accuracies of individual models are expressed as the average (\emph{r}) between the GEBV and observed phenotypic values in the validation set across all \code{nFold} folds. The process can be repeated \code{nFold.reps} times with \code{nFold} new independent sets being sampled each replication, in which case the reported prediction accuracies are averages across all folds and replications.
 #'          }
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' ## CV using method 1 with 25 iterations
 #' CV.mthd1 <- x.val(G.in = G.in_ex, y.in = y.in_ex, nCV.iter = 25)
 #' CV.mthd1$CVs
@@ -48,7 +52,9 @@
 #' }
 #' @export
 
-x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cutoff=0.50, remove.dups=T, impute="EM", frac.train=0.60, nCV.iter=100, nFold=NULL, nFold.reps=1, return.estimates=F, CV.burnIn=750, CV.nIter=1500, models=c("rrBLUP", "BayesA", "BayesB","BayesC", "BL", "BRR")){
+x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cutoff=0.50, remove.dups=TRUE, impute="EM", 
+                  frac.train=0.60, nCV.iter=100, nFold=NULL, nFold.reps=1, return.estimates=FALSE, CV.burnIn=750, CV.nIter=1500, 
+                  models=c("rrBLUP", "BayesA", "BayesB","BayesC", "BL", "BRR"), saveAt = tempdir()){
   
   ## QC steps
   if(is.null(G.in)) stop("Must provide a genotype (G.in) file.")
@@ -102,8 +108,8 @@ x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cut
   
   ## Imput missing markers with EM... will switch to imputing with the mean if nEntries > nMarkers
   ## Will need to use our own MAF filter so that we can keep track of which markers are removed due to MAF and missing data
-  if(impute == "EM") G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "EM", return.imputed = T)$imputed
-  if(impute == "mean") G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "mean", return.imputed = T)$imputed
+  if(impute == "EM") G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "EM", return.imputed = TRUE)$imputed
+  if(impute == "mean") G.imp <- rrBLUP::A.mat(G.mat, min.MAF = 0, max.missing = 1, impute.method = "mean", return.imputed = TRUE)$imputed
   if(impute == "pass") G.imp <- G.mat
   
   ### Start simulation
@@ -117,8 +123,7 @@ x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cut
     TP.entries <- y.entries[y_notNAs]
     G_TP <- G.imp[y_notNAs, ] 
     
-    cat("\n")
-    cat(paste("\nPerforming cross validation for ", trait, sep=""))
+    message(paste("\nPerforming cross validation for ", trait, ".\n", sep=""))
     
     if(is.null(nFold)) junk <- capture.output(xval.out <- XValidate_nonInd(y.CV = y_TP, G.CV = G_TP, models.CV = models, frac.train.CV=frac.train, nCV.iter.CV=nCV.iter, burnIn.CV = CV.burnIn, nIter.CV = CV.nIter)$CV.summary)
     if(!is.null(nFold)) junk <- capture.output(xval.out <- XValidate_Ind(y.CV = y_TP, G.CV = G_TP, models.CV = models, nFold.CV = nFold, nFold.CV.reps = nFold.reps, burnIn.CV = CV.burnIn, nIter.CV = CV.nIter)$CV.summary)
@@ -142,7 +147,8 @@ x.val <- function(G.in=NULL, y.in=NULL, min.maf=0.01, mkr.cutoff=0.50, entry.cut
       beta <- as.numeric(mix.solve.out$beta)
       mkr_effects <- mix.solve.out$u
     }else{
-      capture.output(bayes.fit <- BGLR::BGLR(y=y_TP, ETA=list(list(X=G_TP, model=best.model)), verbose=F, nIter=CV.nIter, burnIn=CV.burnIn))
+      capture.output(bayes.fit <- BGLR::BGLR(y=y_TP, ETA=list(list(X=G_TP, model=best.model)), verbose=F, nIter=CV.nIter, 
+                                             burnIn=CV.burnIn, saveAt = saveAt))
       mkr_effects <- as.numeric(bayes.fit$ETA[[1]]$b)
       beta <- bayes.fit$mu  
     }

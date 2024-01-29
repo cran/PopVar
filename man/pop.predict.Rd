@@ -12,11 +12,11 @@ pop.predict(
   parents = NULL,
   tail.p = 0.1,
   nInd = 200,
-  map.plot = F,
+  map.plot = FALSE,
   min.maf = 0.01,
   mkr.cutoff = 0.5,
   entry.cutoff = 0.5,
-  remove.dups = T,
+  remove.dups = TRUE,
   impute = "EM",
   nSim = 25,
   frac.train = 0.6,
@@ -26,7 +26,8 @@ pop.predict(
   nIter = 12000,
   burnIn = 3000,
   models = c("rrBLUP", "BayesA", "BayesB", "BayesC", "BL", "BRR"),
-  return.raw = F
+  return.raw = FALSE,
+  saveAt = tempdir()
 )
 }
 \arguments{
@@ -61,7 +62,7 @@ TIP - Set header=\code{FALSE} within \code{\link{read.table}} or \code{\link{rea
 
 \item{remove.dups}{Optional \code{logical}. If \code{TRUE} duplicate entries in the genotype matrix, if present, will be removed. This step may be necessary for missing marker imputation (see \code{impute} below). Default is \code{TRUE}.}
 
-\item{impute}{Options include \code{c("EM", "mean", "pass")}. By default (i.e. \code{"EM"}), after filtering missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{"mean"} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP}}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}.}
+\item{impute}{Options include \code{c("EM", "mean", "pass")}. By default (i.e. \code{"EM"}), after filtering missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP-package}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{"mean"} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP-package}}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}.}
 
 \item{nSim}{Optional \code{integer} indicating the number of iterations a population should be simulated for each pairwise cross. Returned values are reported as means of parameters estimated in each of \code{nSim} simulations. Default is \code{25}.}
 
@@ -78,6 +79,9 @@ TIP - Set header=\code{FALSE} within \code{\link{read.table}} or \code{\link{rea
 \item{models}{Optional \code{Character vector} of the regression models to be used in CV and to estimate marker effects. Options include \code{rrBLUP, BayesA, BayesB, BayesC, BL, BRR}, one or more may be included at a time. CV will be conducted regardless of how many models are included. By default all models are tested.}
 
 \item{return.raw}{Optional \code{logical}. If \code{TRUE} then \code{pop.predict} will return the results of each simulation in addition to the summarized dataframe. Default is \code{FALSE}.}
+
+\item{saveAt}{When using models other than "rrBLUP" (i.e. Bayesian models), this is a path and prefix for saving temporary files
+the are produced by the \code{\link[BGLR]{BGLR}} function.}
 }
 \value{
 A \code{list} containing: \itemize{
@@ -90,49 +94,44 @@ A \code{list} containing: \itemize{
 }
 }
 \description{
-\code{pop.predict} uses phenotypic and genotypic data from a set of individuals known as a training population (TP) and a set of candidate parents, which may or may not be included in the TP, to predict the mean (\eqn{\mu}), genetic variance (\emph{V_G}), and superior progeny values (\eqn{\mu}\emph{_sp}) of the half-diallel, or a defined set of pairwise bi-parental crosses between parents. When multiple traits are provided \code{pop.predict} will also predict the correlated responses and correlation between all pairwise traits. See \cite{Mohammadi, Tiede, and Smith (2015)} for further details.\preformatted{         NOTE - \code{pop.predict} writes and reads files to disk so it is highly recommended to set your working directory
-}
+\code{pop.predict} uses phenotypic and genotypic data from a set of individuals known as a training population (TP) and a set of candidate parents, which may or may not be included in the TP, to predict the mean (\eqn{\mu}), genetic variance (\emph{V_G}), and superior progeny values (\eqn{\mu}\emph{_sp}) of the half-diallel, or a defined set of pairwise bi-parental crosses between parents. When multiple traits are provided \code{pop.predict} will also predict the correlated responses and correlation between all pairwise traits. See \cite{Mohammadi, Tiede, and Smith (2015)} for further details.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{         NOTE - \code{pop.predict} writes and reads files to disk so it is highly recommended to set your working directory
+}\if{html}{\out{</div>}}
 }
 \details{
 \code{pop.predict} can be used to predict the mean (\eqn{\mu}), genetic variance (\emph{V_G}), superior progeny values (\eqn{\mu}\eqn{_sp}), as well as the predicted correlated response and correlations between all pairwise traits. The methodology and procedure to do so has been described in \cite{Bernardo (2014)} and \cite{Mohammadi, Tiede, and K.P. Smith (2015)}. Users familiar with genome-wide prediction, association mapping, and/or linkage mapping will be familiar with the
 required inputs of \code{pop.predict}. \code{G.in} includes all of the entries (taxa) in the TP as well as additional entries to be considered as parent candidates. Entries included in \code{G.in} that do have a phenotype for any or all traits in \code{y.in} are considered TP entries for those respective traits. \code{G.in} is filtered according to \code{min.maf}, \code{mkr.cutoff}, \code{entry.cutoff}, and \code{remove.dups};
-remaining missing marker data is imputed using the EM algorithm (\cite{Poland et al., 2012}) when possible, and the marker mean otherwise, both implemented in \code{\link{rrBLUP}}. For each trait, the TP (i.e. entries with phenotype) is used to: \enumerate{
+remaining missing marker data is imputed using the EM algorithm (\cite{Poland et al., 2012}) when possible, and the marker mean otherwise, both implemented in \code{\link{rrBLUP-package}}. For each trait, the TP (i.e. entries with phenotype) is used to: \enumerate{
 \item Perform CV to select a regression model. NOTE - Using the model with the highest CV accuracy is expected to result in the most accurate marker effect estimates (\cite{Bernardo, 2014}). This expectation, however, is yet to be empirically validated and the user is encouraged to investigate the various models in order to make an educated decision about which one to ultimately use.
 \item Estimate marker effects using the model resulting in the highest CV accuracy
 }
-Models include ridge regression BLUP implemented in \code{\link{rrBLUP}} (\cite{Endelman, 2011}) and BayesA, BayesB, BayesC\eqn{\pi}, Bayesian lasso (BL), and Bayesian ridge regression (BRR) implemented in \code{\link{BGLR}} (\cite{de los Compos and Rodriguez, 2014}).
+Models include ridge regression BLUP implemented in \code{\link{rrBLUP-package}} (\cite{Endelman, 2011}) and BayesA, BayesB, BayesC\eqn{\pi}, Bayesian lasso (BL), and Bayesian ridge regression (BRR) implemented in \code{\link{BGLR}} (\cite{de los Compos and Rodriguez, 2014}).
 Information from the \code{map.in} is then used to simulate chromosomal recombination expected in a recombinant inbred line (i.e. \emph{F-infinity}) (\cite{Broman et al., 2003}) population (size=\code{nInd}). A function then converts the recombined chromosomal segments of the generic RIL population to the chromosomal segments of the population's respective parents and GEBVs of the simulated progeny are calculated.
 The simulation and conversion process is repeated \emph{s} times, where \emph{s} = \code{nSim}, to calculate dispersion statistics for \eqn{\mu} and \emph{V_G}; the remainder of the values in the \code{predictions} output are means of the \emph{s} simulations.  During each iteration the correlation (\emph{r}) and correlated response of each pairwise combination of traits is also calculated and their mean across \emph{n} simulations is returned.
-The correlated response of trait.B when predicting trait.A is the mean of trait.B for the (\eqn{\mu}\eqn{_sp}) of trait.A, and vice-versa; a correlated response for the bottom \code{tail.p} and upper \eqn{1-tail.p} is returned for each trait.\preformatted{     A dataset \code{\link{think_barley.rda}} is provided as an example of the proper formatting of input files and also for users to become familiar with \code{pop.predict}.
-}
+The correlated response of trait.B when predicting trait.A is the mean of trait.B for the (\eqn{\mu}\eqn{_sp}) of trait.A, and vice-versa; a correlated response for the bottom \code{tail.p} and upper \eqn{1-tail.p} is returned for each trait.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{     A dataset \code{\link{think_barley.rda}} is provided as an example of the proper formatting of input files and also for users to become familiar with \code{pop.predict}.
+}\if{html}{\out{</div>}}
 }
 \examples{
+
 \dontrun{
-## View formatting
-## Use View() in RStudio or R GUI with X11 forwarding
-## Use head() in R GUI without X11 forwarding
-View(G.in_ex)
-View(y.in_ex)
-View(map.in_ex)
-View(cross.tab_ex)
 
-## setwd() - pop.predict writes and reads files to disk
-##   so it is recommended to set your working directory
-
-## nSim and nFold are set to low values in the
-## examples for sake of computing time
+# Load data
+data("think_barley")
 
 ## Ex. 1 - Predict a defined set of crosses
 ## This example uses CV method 1 (see Details of x.val() function)
 ex1.out <- pop.predict(G.in = G.in_ex, y.in = y.in_ex, 
    map.in = map.in_ex, crossing.table = cross.tab_ex,
-   nSim=5, nCV.iter=10)
+   nSim=5, nCV.iter=2)
 ex1.out$predictions  ## Predicted parameters
 ex1.out$CVs          ## CV results
                
 ## Ex. 2 - Predict all pairwise crosses between a list of parents
 ## This example uses CV method 2 (see Details of x.val() function)
-par.list <- sample(y.in_ex[,1], size = 10, replace = F)
+par.list <- sample(y.in_ex[,1], size = 10, replace = FALSE)
 ex2.out <- pop.predict(G.in = G.in_ex, y.in = y.in_ex,
    map.in = map.in_ex, parents = par.list, 
    nSim=5, nFold=5, nFold.reps=2)
@@ -141,11 +140,16 @@ ex2.out <- pop.predict(G.in = G.in_ex, y.in = y.in_ex,
 ex3.out <- pop.predict(G.in = G.in_ex, y.in = y.in_ex,
    map.in = map.in_ex, crossing.table = cross.tab_ex,
    models = c("rrBLUP", "BL"), nSim=5, nCV.iter=10)  
+
+## Ex. 4 - Same as Ex. 3, but return all raw SNP and prediction data for each simulated population
+ex4.out <- pop.predict(G.in = G.in_ex, y.in = y.in_ex,
+   map.in = map.in_ex, crossing.table = cross.tab_ex,
+   models = c("rrBLUP", "BL"), nSim=5, nCV.iter=2, return.raw = TRUE)  
 }
 
 }
 \references{
-\preformatted{ Bernardo, R. 2014. Genomewide Selection of Parental Inbreds: Classes of Loci and Virtual Biparental Populations. Crop Sci. 55:2586-2595.
+\if{html}{\out{<div class="sourceCode">}}\preformatted{ Bernardo, R. 2014. Genomewide Selection of Parental Inbreds: Classes of Loci and Virtual Biparental Populations. Crop Sci. 55:2586-2595.
  
  Broman, K. W., H. Wu, S. Sen and G.A. Churchill. 2003. R/qtl: QTL mapping in experimental crosses. Bioinformatics 19:889-890.
  
@@ -158,5 +162,5 @@ ex3.out <- pop.predict(G.in = G.in_ex, y.in = y.in_ex,
  Munoz-Amatriain, M., M. J. Moscou, P. R. Bhat, J. T. Svensson, J. Bartos, P. Suchankova, H. Simkova, T. R. Endo, R. D. Fenton, S. Lonardi, A. M. Castillo, S. Chao, L. Cistue, A. Cuesta-Marcos, K. L. Forrest, M. J. Hayden, P. M. Hayes, R. D. Horsley, K. Makoto, D. Moody, K. Sato, M. P. Valles, B. B. H. Wulff, G. J. Muehlbauer, J. Dolezel, and T. J. Close. 2011 An improved consensus linkage map of barley based on flow-sorted chromosomes and single nucleotide polymorphism markers. Plant Gen. 4:238-249.
  
  Poland, J., J. Endelman, J. Dawson, J. Rutkoski, S. Wu, Y. Manes, S. Dreisigacker, J. Crossa, H. Sanches-Villeda, M. Sorrells, and J.-L. Jannink. 2012. Genomic Selection in Wheat Breeding using Genotyping-by-Sequencing. Plant Genome 5:103-113.
-}
+}\if{html}{\out{</div>}}
 }
