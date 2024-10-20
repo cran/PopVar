@@ -27,6 +27,7 @@
 #' @param burnIn The burn-in rate.
 #' 
 #' @importFrom stats cor sd
+#' @importFrom BGLR BGLR
 #' 
 
 #' 

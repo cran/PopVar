@@ -1,3 +1,5 @@
+# PopVar 1.3.3
+
 # PopVar 1.3.0
 
 * Added new functions to i) generate predictions using a deterministic equation instead of simulations and ii) generate predictions in multi-parent populations

@@ -62,7 +62,7 @@ TIP - Set header=\code{FALSE} within \code{\link{read.table}} or \code{\link{rea
 
 \item{remove.dups}{Optional \code{logical}. If \code{TRUE} duplicate entries in the genotype matrix, if present, will be removed. This step may be necessary for missing marker imputation (see \code{impute} below). Default is \code{TRUE}.}
 
-\item{impute}{Options include \code{c("EM", "mean", "pass")}. By default (i.e. \code{"EM"}), after filtering missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP-package}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{"mean"} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP-package}}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}.}
+\item{impute}{Options include \code{c("EM", "mean", "pass")}. By default (i.e. \code{"EM"}), after filtering missing genotypic data will be imputed via the EM algorithm implemented in \code{\link[rrBLUP]{A.mat}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{"mean"} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link[rrBLUP]{A.mat}}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}.}
 
 \item{nSim}{Optional \code{integer} indicating the number of iterations a population should be simulated for each pairwise cross. Returned values are reported as means of parameters estimated in each of \code{nSim} simulations. Default is \code{25}.}
 
@@ -102,11 +102,11 @@ A \code{list} containing: \itemize{
 \details{
 \code{pop.predict} can be used to predict the mean (\eqn{\mu}), genetic variance (\emph{V_G}), superior progeny values (\eqn{\mu}\eqn{_sp}), as well as the predicted correlated response and correlations between all pairwise traits. The methodology and procedure to do so has been described in \cite{Bernardo (2014)} and \cite{Mohammadi, Tiede, and K.P. Smith (2015)}. Users familiar with genome-wide prediction, association mapping, and/or linkage mapping will be familiar with the
 required inputs of \code{pop.predict}. \code{G.in} includes all of the entries (taxa) in the TP as well as additional entries to be considered as parent candidates. Entries included in \code{G.in} that do have a phenotype for any or all traits in \code{y.in} are considered TP entries for those respective traits. \code{G.in} is filtered according to \code{min.maf}, \code{mkr.cutoff}, \code{entry.cutoff}, and \code{remove.dups};
-remaining missing marker data is imputed using the EM algorithm (\cite{Poland et al., 2012}) when possible, and the marker mean otherwise, both implemented in \code{\link{rrBLUP-package}}. For each trait, the TP (i.e. entries with phenotype) is used to: \enumerate{
+remaining missing marker data is imputed using the EM algorithm (\cite{Poland et al., 2012}) when possible, and the marker mean otherwise, both implemented in \code{\link[rrBLUP]{A.mat}}. For each trait, the TP (i.e. entries with phenotype) is used to: \enumerate{
 \item Perform CV to select a regression model. NOTE - Using the model with the highest CV accuracy is expected to result in the most accurate marker effect estimates (\cite{Bernardo, 2014}). This expectation, however, is yet to be empirically validated and the user is encouraged to investigate the various models in order to make an educated decision about which one to ultimately use.
 \item Estimate marker effects using the model resulting in the highest CV accuracy
 }
-Models include ridge regression BLUP implemented in \code{\link{rrBLUP-package}} (\cite{Endelman, 2011}) and BayesA, BayesB, BayesC\eqn{\pi}, Bayesian lasso (BL), and Bayesian ridge regression (BRR) implemented in \code{\link{BGLR}} (\cite{de los Compos and Rodriguez, 2014}).
+Models include ridge regression BLUP implemented in \code{\link[rrBLUP]{mixed.solve}} (\cite{Endelman, 2011}) and BayesA, BayesB, BayesC\eqn{\pi}, Bayesian lasso (BL), and Bayesian ridge regression (BRR) implemented in \code{\link[BGLR]{BGLR}} (\cite{de los Compos and Rodriguez, 2014}).
 Information from the \code{map.in} is then used to simulate chromosomal recombination expected in a recombinant inbred line (i.e. \emph{F-infinity}) (\cite{Broman et al., 2003}) population (size=\code{nInd}). A function then converts the recombined chromosomal segments of the generic RIL population to the chromosomal segments of the population's respective parents and GEBVs of the simulated progeny are calculated.
 The simulation and conversion process is repeated \emph{s} times, where \emph{s} = \code{nSim}, to calculate dispersion statistics for \eqn{\mu} and \emph{V_G}; the remainder of the values in the \code{predictions} output are means of the \emph{s} simulations.  During each iteration the correlation (\emph{r}) and correlated response of each pairwise combination of traits is also calculated and their mean across \emph{n} simulations is returned.
 The correlated response of trait.B when predicting trait.A is the mean of trait.B for the (\eqn{\mu}\eqn{_sp}) of trait.A, and vice-versa; a correlated response for the bottom \code{tail.p} and upper \eqn{1-tail.p} is returned for each trait.
@@ -121,30 +121,26 @@ The correlated response of trait.B when predicting trait.A is the mean of trait.
 # Load data
 data("think_barley")
 
+## The following examples only use the model 'rrBLUP' for the sake of testing. Functions
+## BGLR package write temporary files to the disk.
+##
 ## Ex. 1 - Predict a defined set of crosses
 ## This example uses CV method 1 (see Details of x.val() function)
 ex1.out <- pop.predict(G.in = G.in_ex, y.in = y.in_ex, 
    map.in = map.in_ex, crossing.table = cross.tab_ex,
-   nSim=5, nCV.iter=2)
+   nSim=5, nCV.iter=2, models = "rrBLUP")
 ex1.out$predictions  ## Predicted parameters
 ex1.out$CVs          ## CV results
-               
-## Ex. 2 - Predict all pairwise crosses between a list of parents
-## This example uses CV method 2 (see Details of x.val() function)
-par.list <- sample(y.in_ex[,1], size = 10, replace = FALSE)
-ex2.out <- pop.predict(G.in = G.in_ex, y.in = y.in_ex,
-   map.in = map.in_ex, parents = par.list, 
-   nSim=5, nFold=5, nFold.reps=2)
        
-## Ex. 3 - Use only rrBLUP and Bayesian lasso (BL) models
+## Ex. 2 - Use only rrBLUP and Bayesian lasso (BL) models
 ex3.out <- pop.predict(G.in = G.in_ex, y.in = y.in_ex,
    map.in = map.in_ex, crossing.table = cross.tab_ex,
-   models = c("rrBLUP", "BL"), nSim=5, nCV.iter=10)  
+   models = c("rrBLUP"), nSim=5, nCV.iter=10)  
 
-## Ex. 4 - Same as Ex. 3, but return all raw SNP and prediction data for each simulated population
+## Ex. 3 - Same as Ex. 3, but return all raw SNP and prediction data for each simulated population
 ex4.out <- pop.predict(G.in = G.in_ex, y.in = y.in_ex,
    map.in = map.in_ex, crossing.table = cross.tab_ex,
-   models = c("rrBLUP", "BL"), nSim=5, nCV.iter=2, return.raw = TRUE)  
+   models = c("rrBLUP"), nSim=5, nCV.iter=2, return.raw = TRUE)  
 }
 
 }

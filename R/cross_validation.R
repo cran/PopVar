@@ -12,7 +12,7 @@
 #'          }
 #'          TIP - Set header=\code{FALSE} within \code{\link{read.table}} or \code{\link{read.csv}} when importing a tab-delimited file containing data for \code{G.in}.
 #' @param y.in \code{Matrix} of phenotypic data. First column contains entry (taxa) names found in \code{G.in}, regardless of whether the entry has a phenotype for any or all traits. Additional columns contain phenotypic data; column names should reflect the trait name(s). TIP - Set header=\code{TRUE} within \code{read.table} or \code{read.csv} when importing a tab-delimited file containing dat
-#' @param impute Options include \code{c("EM", "mean", "pass")}. By default (i.e. \code{"EM"}), after filtering missing genotypic data will be imputed via the EM algorithm implemented in \code{\link{rrBLUP-package}} (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{"mean"} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link{rrBLUP-package}}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}.
+#' @param impute Options include \code{c("EM", "mean", "pass")}. By default (i.e. \code{"EM"}), after filtering missing genotypic data will be imputed via the EM algorithm implemented in \code{\link[rrBLUP]{A.mat}}  (\cite{Endelman, 2011}; \cite{Poland et al., 2012}). If \code{"mean"} missing genotypic data will be imputed via the 'marker mean' method, also implemented in \code{\link[rrBLUP]{A.mat}}. Enter \code{"pass"} if a pre-filtered and imputed genotype matrix is provided to \code{G.in}.
 #' @param min.maf Optional \code{numeric} indicating a minimum minor allele frequency (MAF) when filtering \code{G.in}. Markers with an MAF < \code{min.maf} will be removed. Default is \code{0.01} to remove monomorphic markers. Set to \code{0} for no filtering.
 #' @param mkr.cutoff Optional \code{numeric} indicating the maximum missing data per marker when filtering \code{G.in}. Markers missing > \code{mkr.cutoff} data will be removed. Default is \code{0.50}. Set to \code{1} for no filtering.
 #' @param entry.cutoff Optional \code{numeric} indicating the maximum missing genotypic data per entry allowed when filtering \code{G.in}. Entries missing > \code{entry.cutoff} marker data will be removed. Default is \code{0.50}. Set to \code{1} for no filtering.
@@ -43,12 +43,16 @@
 #'          }
 #' @examples
 #' \donttest{
+#' 
+#' ## The following examples only use the model 'rrBLUP' for the sake of testing. Functions
+#' ## BGLR package write temporary files to the disk.
+#' 
 #' ## CV using method 1 with 25 iterations
-#' CV.mthd1 <- x.val(G.in = G.in_ex, y.in = y.in_ex, nCV.iter = 25)
+#' CV.mthd1 <- x.val(G.in = G.in_ex, y.in = y.in_ex, nCV.iter = 25, models = "rrBLUP")
 #' CV.mthd1$CVs
 #' 
 #' ## CV using method 2 with 5 folds and 3 replications
-#' x.val(G.in = G.in_ex, y.in = y.in_ex, nFold = 5, nFold.reps = 3)
+#' x.val(G.in = G.in_ex, y.in = y.in_ex, nFold = 5, nFold.reps = 3, models = "rrBLUP")
 #' }
 #' @export
 
